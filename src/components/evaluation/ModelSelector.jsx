@@ -6,7 +6,7 @@ import {
   CheckCircle2, Info, ArrowRight, Layers
 } from 'lucide-react';
 
-// --- MOCK REGISTRY & DATA ---
+// --- ACTUAL REGISTRY & DATA ---
 const MODEL_REGISTRY = [
   { 
     id: 'llama-3-70b', name: 'Llama 3 (70B)', provider: 'Groq', providerId: 'groq',
@@ -21,46 +21,45 @@ const MODEL_REGISTRY = [
     icon: Sparkles, color: 'text-blue-400', bg: 'bg-blue-400/10', ring: 'ring-blue-400/20'
   },
   { 
-    id: 'mistral-7b', name: 'Mistral Instruct', provider: 'OpenRouter', providerId: 'openrouter',
-    params: '7B', tier: 'Free Routing', recommended: true,
-    description: 'Highly efficient dense model, punches above its weight class.',
-    icon: Zap, color: 'text-amber-400', bg: 'bg-amber-400/10', ring: 'ring-amber-400/20'
-  },
-  { 
     id: 'gemma-2-9b', name: 'Gemma 2 (9B)', provider: 'Groq', providerId: 'groq',
     params: '9B', tier: 'Free API', recommended: false,
     description: 'Google\'s open weights model running on LPUs for extreme speed.',
     icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-400/10', ring: 'ring-cyan-400/20'
   },
   { 
-    id: 'phi-3-mini', name: 'Phi-3 Mini', provider: 'Local', providerId: 'local',
-    params: '3.8B', tier: 'Zero Cost', recommended: false,
-    description: 'Microsoft\'s small language model capable of running locally via WebGPU.',
-    icon: Box, color: 'text-emerald-400', bg: 'bg-emerald-400/10', ring: 'ring-emerald-400/20'
+    id: 'codellama-7b-hf', name: 'CodeLlama 7B', provider: 'Hugging Face', providerId: 'huggingface',
+    params: '7B', tier: 'Free API', recommended: true,
+    description: 'Meta\'s specialized code generation model hosted on Hugging Face.',
+    icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-400/10', ring: 'ring-yellow-400/20'
   }
 ];
 
 // --- ZUSTAND STORE ---
 const useEvaluationStore = create((set) => ({
-  selectedModels: ['llama-3-70b', 'gemini-1.5-flash'],
-  // Mocking rate limits: 'ok' | 'warning' | 'critical'
+  // Default to selecting one from each provider
+  selectedModels: ['llama-3-70b', 'gemini-1.5-flash', 'codellama-7b-hf'],
+  
+  // Rate limits aligned with your actual providers
   rateLimits: {
     'groq': 'ok',
-    'google': 'warning', // e.g., nearing RPM limit
-    'openrouter': 'ok',
-    'local': 'ok'
+    'google': 'ok', 
+    'huggingface': 'ok'
   },
+  
   toggleModel: (id) => set((state) => ({
     selectedModels: state.selectedModels.includes(id)
       ? state.selectedModels.filter(m => m !== id)
       : [...state.selectedModels, id]
   })),
+  
   selectRecommended: () => set({ 
     selectedModels: MODEL_REGISTRY.filter(m => m.recommended).map(m => m.id) 
   }),
+  
   selectAll: () => set({ 
     selectedModels: MODEL_REGISTRY.map(m => m.id) 
   }),
+  
   clearAll: () => set({ selectedModels: [] })
 }));
 

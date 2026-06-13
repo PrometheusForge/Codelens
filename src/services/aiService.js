@@ -92,47 +92,75 @@ export const queryGemini = async (prompt, modelId = 'gemini-1.5-flash') => {
   };
 };
 
-// ----- OPENROUTER (free models) -----
-export const queryOpenRouter = async (prompt, modelId = 'meta-llama/llama-3-8b-instruct:free') => {
+// ----- HUGGING FACE -----
+export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b-hf') => {
   const startTime = Date.now();
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  
+  // Combine the system prompt and the challenge for Hugging Face
+  const fullPrompt = `${CODING_SYSTEM_PROMPT}\n\nChallenge:\n${prompt}`;
+
+  const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'http://localhost:5173',
-      'X-Title': 'CodeLens'
+      'Authorization': `Bearer ${import.meta.env.VITE_HF_API_KEY}`,
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: modelId,
-      messages: [
-        { role: 'system', content: CODING_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 2048,
-      temperature: 0.1
+      inputs: fullPrompt,
+      parameters: {
+        max_new_tokens: 2048,
+        temperature: 0.1,
+        return_full_text: false
+      }
     })
   });
   
-  if (!response.ok) throw new Error(`OpenRouter API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Hugging Face API error: ${response.status}`);
   
   const data = await response.json();
+  // Hugging Face typically returns an array with a generated_text string
+  const content = Array.isArray(data) ? data[0].generated_text : data.generated_text;
+
   return {
-    provider: 'OpenRouter',
+    provider: 'Hugging Face',
     model: modelId,
-    content: data.choices[0].message.content,
+    content: content ? content.trim() : "No code generated.",
     responseTimeMs: Date.now() - startTime,
-    inputTokens: data.usage?.prompt_tokens || 0,
-    outputTokens: data.usage?.completion_tokens || 0,
+    inputTokens: 0, // HF free inference API doesn't explicitly return token counts
+    outputTokens: 0,
   };
 };
 
 export const MODEL_REGISTRY = [
-  { id: 'llama3-70b-8192',      label: 'Llama 3 70B',      provider: 'Groq',       fn: (p) => queryGroq(p, 'llama3-70b-8192'), color: '#4f46e5' },
-  { id: 'llama3-8b-8192',       label: 'Llama 3 8B',       provider: 'Groq',       fn: (p) => queryGroq(p, 'llama3-8b-8192'),  color: '#7c3aed' },
-  { id: 'mixtral-8x7b-32768',   label: 'Mixtral 8x7B',     provider: 'Groq',       fn: (p) => queryGroq(p, 'mixtral-8x7b-32768'), color: '#0ea5e9' },
-  { id: 'gemini-1.5-flash',     label: 'Gemini 1.5 Flash', provider: 'Google',     fn: (p) => queryGemini(p),                  color: '#22c55e' },
-  { id: 'llama-3-8b-free',      label: 'Llama 3 8B (OR)',  provider: 'OpenRouter', fn: (p) => queryOpenRouter(p, 'meta-llama/llama-3-8b-instruct:free'), color: '#f59e0b' },
+  { 
+    id: 'llama-3-70b',      
+    label: 'Llama 3 70B',      
+    provider: 'Groq',       
+    fn: (p) => queryGroq(p, 'llama3-70b-8192'), 
+    color: '#4f46e5' 
+  },
+  { 
+    id: 'gemini-1.5-flash',     
+    label: 'Gemini 1.5 Flash', 
+    provider: 'Google',     
+    fn: (p) => queryGemini(p),                  
+    color: '#22c55e' 
+  },
+  { 
+    id: 'gemma-2-9b',       
+    label: 'Gemma 2 9B',       
+    provider: 'Groq',       
+    // Groq maps Gemma to this specific endpoint ID
+    fn: (p) => queryGroq(p, 'gemma-7b-it'),  
+    color: '#06b6d4' 
+  },
+  { 
+    id: 'codellama-7b-hf',      
+    label: 'CodeLlama 7B',  
+    provider: 'Hugging Face', 
+    fn: (p) => queryHuggingFace(p, 'codellama/CodeLlama-7b-hf'), 
+    color: '#eab308' 
+  },
 ];
 
 export const queryAllModels = async (formattedPrompt, selectedModelIds) => {
@@ -175,4 +203,43 @@ ${challenge.examples.map(e => `- Input: \`${e.input}\` → Output: \`${e.output}
 ${challenge.constraints.map(c => `- ${c}`).join('\n')}
 
 **Write your solution in ${challenge.language}.**`;
+};
+
+// ----- THE AI JUDGE (Evaluation Engine) -----
+export const evaluateCodeSubmission = async (challengePrompt, submittedCode) => {
+  const systemPrompt = `You are a strict, expert code evaluator.
+You will be given a coding challenge prompt and a submitted code snippet.
+You must output ONLY a valid JSON object with exactly two keys:
+1. "score": an integer from 0 to 100 representing the code's correctness, efficiency, and readability.
+2. "feedback": a single, concise sentence explaining the score and suggesting one specific improvement.
+Do not include any markdown formatting, backticks, or other text.`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama3-70b-8192',
+      response_format: { type: "json_object" }, // Forces the AI to return perfect JSON
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Challenge Prompt:\n${challengePrompt}\n\nSubmitted Code:\n${submittedCode}` }
+      ],
+      temperature: 0.1
+    })
+  });
+
+  if (!response.ok) throw new Error('Groq Evaluation API failed');
+  
+  const data = await response.json();
+  
+  try {
+    // Parse the JSON string returned by the AI into a real JavaScript object
+    return JSON.parse(data.choices[0].message.content);
+  } catch (e) {
+    console.error("Failed to parse JSON from AI:", data.choices[0].message.content);
+    return { score: 0, feedback: "Evaluation error: AI returned an invalid format." };
+  }
 };

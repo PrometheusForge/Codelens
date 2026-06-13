@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { create } from 'zustand';
 import ReactMarkdown from 'react-markdown';
 import { 
@@ -7,6 +8,8 @@ import {
   Clock, ChevronRight, SlidersHorizontal, X,
   Copy, Check, TerminalSquare, Activity, Beaker
 } from 'lucide-react';
+import { challenges } from '../data/challenges.js';
+
 
 // --- ZUSTAND STORE ---
 const useAppStore = create((set) => ({
@@ -15,32 +18,7 @@ const useAppStore = create((set) => ({
 }));
 
 // --- MOCK DATA SEED (Enriched for Slide-Over) ---
-const MOCK_CHALLENGES = [
-  { 
-    id: 'two-sum', title: 'Two Sum', category: 'algorithms', difficulty: 'easy', language: 'both', estimatedMinutes: 15, tags: ['array', 'hash-map'], createdAt: '2025-01-01',
-    prompt: 'Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have **exactly one solution**, and you may not use the same element twice. You can return the answer in any order.', 
-    examples: [{ input: 'nums = [2,7,11,15], target = 9', output: '[0,1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' }],
-    testCases: [
-      { id: 'tc1', input: '[2,7,11,15]\n9', expectedOutput: '0 1', points: 25 },
-      { id: 'tc2', input: '[3,2,4]\n6', expectedOutput: '1 2', points: 25 },
-      { id: 'tc3', input: '[3,3]\n6', expectedOutput: '0 1', points: 50 },
-    ]
-  },
-  { 
-    id: 'lru-cache', title: 'LRU Cache', category: 'algorithms', difficulty: 'hard', language: 'both', estimatedMinutes: 45, tags: ['hash-map', 'doubly-linked-list', 'design'], createdAt: '2025-01-05',
-    prompt: 'Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.\n\nImplement the `LRUCache` class:\n* `LRUCache(int capacity)` Initialize the LRU cache with positive size capacity.\n* `int get(int key)` Return the value of the key if the key exists, otherwise return `-1`.\n* `void put(int key, int value)` Update the value of the key if the key exists. Otherwise, add the key-value pair to the cache.',
-    examples: [{ input: '["LRUCache", "put", "put", "get", "put"]\n[[2], [1, 1], [2, 2], [1], [3, 3]]', output: '[null, null, null, 1, null]', explanation: 'LRUCache lRUCache = new LRUCache(2);\n...' }],
-    testCases: [
-      { id: 'tc1', input: 'capacity:2\nput:1:1\nput:2:2\nget:1', expectedOutput: '1', points: 50 },
-      { id: 'tc2', input: 'capacity:1\nput:2:1\nget:2\nput:3:2\nget:2', expectedOutput: '1\n-1', points: 50 },
-    ]
-  },
-  { id: 'implement-trie', title: 'Build a Trie (Prefix Tree)', category: 'data-structures', difficulty: 'medium', language: 'both', estimatedMinutes: 30, tags: ['tree', 'design', 'string'], prompt: 'A trie or prefix tree is a tree data structure used to efficiently store and retrieve keys.', examples: [], testCases: [], createdAt: '2025-01-02' },
-  { id: 'debounce', title: 'Implement debounce from scratch', category: 'frontend', difficulty: 'easy', language: 'javascript', estimatedMinutes: 15, tags: ['closures', 'timers', 'fundamentals'], prompt: 'Write a function debounce(fn, delay) that returns a debounced version of a given function.', examples: [], testCases: [], createdAt: '2025-01-03' },
-  { id: 'virtual-scroll', title: 'Build a Virtual Scroll Engine', category: 'frontend', difficulty: 'hard', language: 'javascript', estimatedMinutes: 40, tags: ['math', 'performance', 'ui'], prompt: 'Implement the math logic for a Virtual Scroll component calculating startIndex, endIndex, and offsetY.', examples: [], testCases: [], createdAt: '2025-01-08' },
-  { id: 'react-memory-leak', title: 'Fix Memory Leak in React', category: 'debugging', difficulty: 'medium', language: 'javascript', estimatedMinutes: 15, tags: ['react', 'hooks', 'memory-leak'], prompt: 'The provided React component sets up a timer but introduces a severe memory leak. Fix it.', examples: [], testCases: [], createdAt: '2025-01-04' },
-  { id: 'pub-sub-broker', title: 'Build a Pub/Sub Broker', category: 'system-design', difficulty: 'expert', language: 'javascript', estimatedMinutes: 50, tags: ['design-patterns', 'events', 'trie'], prompt: 'Design an advanced Pub/Sub broker from scratch supporting wildcard subscriptions.', examples: [], testCases: [], createdAt: '2025-01-06' }
-];
+
 
 const CATEGORIES = [
   { id: 'algorithms', label: 'Algorithms', icon: Cpu },
@@ -91,6 +69,8 @@ const Badge = ({ children, className = '' }) => (
 const SlideOver = ({ challenge, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [showAllTests, setShowAllTests] = useState(false);
+
+  const navigate = useNavigate();
 
   // Keyboard shortcut to close
   useEffect(() => {
@@ -263,7 +243,11 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
         {/* Footer (Sticky CTA) */}
         <div className="flex-shrink-0 p-6 border-t border-white/5 bg-[#09090b]/80 backdrop-blur-xl">
           <button 
-            onClick={() => window.location.href = `/evaluate/${challenge.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/evaluate/${challenge.id}`, { state: { challengePrompt: challenge.prompt } });
+            }}
             className="group relative w-full flex items-center justify-center gap-3 rounded-full bg-zinc-100 py-3.5 text-sm font-semibold text-zinc-950 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
           >
             <span>Start Evaluation</span>
@@ -400,7 +384,8 @@ export default function Challenges() {
 
   // Derived Data
   const filteredChallenges = useMemo(() => {
-    let result = MOCK_CHALLENGES;
+    // ⬇️ UPDATE THIS LINE to use your imported data
+    let result = challenges;
 
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
@@ -476,7 +461,7 @@ export default function Challenges() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
           
           {/* FILTER SIDEBAR */}
-          <aside className="lg:col-span-3 flex flex-col gap-10">
+          <aside className="lg:col-span-3 flex flex-col gap-10 lg:sticky lg:top-8 lg:self-start">
             
             {/* Search */}
             <div className="relative group">
@@ -500,7 +485,7 @@ export default function Challenges() {
             {/* Category Filters */}
             <div className="flex flex-col gap-4">
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Categories</h4>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                 {CATEGORIES.map(cat => (
                   <label key={cat.id} className="group flex cursor-pointer items-center gap-3">
                     <div className="relative flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.03] ring-1 ring-white/10 transition-all group-hover:bg-white/[0.06]">

@@ -95,7 +95,7 @@ export default function RadarChartComponent() {
           
           {/* Explicit height on ResponsiveContainer bypasses resize observer bugs in iframes */}
           <ResponsiveContainer width="100%" height={380}>
-            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={CHART_DATA}>
+            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
               
               {/* Grid Lines - Muted to prevent visual noise */}
               <PolarGrid 

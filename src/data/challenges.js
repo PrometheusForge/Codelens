@@ -1,10 +1,10 @@
 export const challenges = [
-  // ==========================================
+
   // CATEGORY: ALGORITHMS (8 Challenges)
-  // ==========================================
+  
   {
     id: 'two-sum',
-    title: '1. Two Sum',
+    title: '01. Two Sum',
     category: 'algorithms',
     difficulty: 'easy',
     language: 'both',
@@ -24,7 +24,7 @@ export const challenges = [
   },
   {
     id: 'valid-parentheses',
-    title: '2. Valid Parentheses',
+    title: '02. Valid Parentheses',
     category: 'algorithms',
     difficulty: 'easy',
     language: 'both',
@@ -45,7 +45,7 @@ export const challenges = [
   },
   {
     id: 'longest-substring',
-    title: '3. Longest Substring Without Repeating Characters',
+    title: '03. Longest Substring Without Repeating Characters',
     category: 'algorithms',
     difficulty: 'medium',
     language: 'both',
@@ -66,7 +66,7 @@ export const challenges = [
   },
   {
     id: 'merge-intervals',
-    title: '4. Merge Intervals',
+    title: '04. Merge Intervals',
     category: 'algorithms',
     difficulty: 'medium',
     language: 'both',
@@ -86,7 +86,7 @@ export const challenges = [
   },
   {
     id: 'number-of-islands',
-    title: '5. Number of Islands',
+    title: '05. Number of Islands',
     category: 'algorithms',
     difficulty: 'medium',
     language: 'both',
@@ -106,7 +106,7 @@ export const challenges = [
   },
   {
     id: 'lru-cache',
-    title: '6. LRU Cache',
+    title: '06. LRU Cache',
     category: 'algorithms',
     difficulty: 'hard',
     language: 'both',
@@ -125,7 +125,7 @@ export const challenges = [
   },
   {
     id: 'word-ladder',
-    title: '7. Word Ladder',
+    title: '07. Word Ladder',
     category: 'algorithms',
     difficulty: 'hard',
     language: 'both',
@@ -145,7 +145,7 @@ export const challenges = [
   },
   {
     id: 'median-two-sorted-arrays',
-    title: '8. Median of Two Sorted Arrays',
+    title: '08. Median of Two Sorted Arrays',
     category: 'algorithms',
     difficulty: 'expert',
     language: 'both',
@@ -164,12 +164,12 @@ export const challenges = [
     createdAt: '2025-01-01T00:00:00Z'
   },
 
-  // ==========================================
+  
   // CATEGORY: DATA STRUCTURES (5 Challenges)
-  // ==========================================
+  
   {
     id: 'stack-using-queues',
-    title: '9. Implement a Stack Using Two Queues',
+    title: '09. Implement a Stack Using Two Queues',
     category: 'data-structures',
     difficulty: 'easy',
     language: 'both',
@@ -263,9 +263,9 @@ export const challenges = [
     createdAt: '2025-01-01T00:00:00Z'
   },
 
-  // ==========================================
+  
   // CATEGORY: FRONTEND-SPECIFIC (7 Challenges)
-  // ==========================================
+  
   {
     id: 'debounce',
     title: '14. Implement debounce from scratch',
@@ -400,9 +400,9 @@ export const challenges = [
     createdAt: '2025-01-01T00:00:00Z'
   },
 
-  // ==========================================
+  
   // CATEGORY: DEBUGGING (5 Challenges)
-  // ==========================================
+  
   {
     id: 'react-memory-leak',
     title: '21. Fix Memory Leak in React Component',
@@ -544,9 +544,8 @@ export const challenges = [
     createdAt: '2025-01-01T00:00:00Z'
   },
 
-  // ==========================================
   // CATEGORY: SYSTEM DESIGN (IN CODE) (5 Challenges)
-  // ==========================================
+  
   {
     id: 'token-bucket-limiter',
     title: '26. Implement a Token Bucket Rate Limiter',
@@ -641,5 +640,86 @@ export const challenges = [
     evaluationFocus: ['correctness', 'readability', 'explanation'],
     hints: ['Store events in an array. A snapshot is just an object `{ lastEventIndex, state }`.'],
     createdAt: '2025-01-01T00:00:00Z'
+  },
+
+  // CATEGORY: BACKEND (3 Challenges)
+  
+  {
+    id: 'basic-url-router',
+    title: '31. Build a Basic URL Router',
+    category: 'backend',
+    difficulty: 'easy',
+    language: 'javascript',
+    estimatedMinutes: 20,
+    prompt: `Design a basic backend URL router. Write a function \`matchRoute(registeredRoutes, incomingUrl)\` that takes an array of route string patterns (e.g., \`["/users", "/users/:id", "/posts/:id/comments"]\`) and an incoming URL string.\n\nIf the URL matches a registered route, return an object containing the matched route pattern and a parsed \`params\` object. If there is no match, return \`null\`.\n\nFor example, an incoming URL of \`/users/42\` should match the \`/users/:id\` route and extract \`{ id: "42" }\`.`,
+    constraints: [
+      'Path parameters are denoted by a colon (:) followed by the parameter name.',
+      'Routes must match exactly (ignoring trailing slashes).',
+      'Assume valid URL paths without query strings for this exercise.'
+    ],
+    examples: [
+      { input: 'routes = ["/users/:id"], url = "/users/42"', output: '{ route: "/users/:id", params: { id: "42" } }', explanation: 'The pattern matches and extracts 42 as the id.' },
+      { input: 'routes = ["/users"], url = "/users/42"', output: 'null', explanation: 'Does not match the static /users route.' }
+    ],
+    testCases: [
+      { id: 'tc1', input: '["/users/:id"]\n"/users/123"', expectedOutput: '{"route":"/users/:id","params":{"id":"123"}}', points: 30 },
+      { id: 'tc2', input: '["/posts/:postId/comments/:commentId"]\n"/posts/1/comments/5"', expectedOutput: '{"route":"/posts/:postId/comments/:commentId","params":{"postId":"1","commentId":"5"}}', points: 40 },
+      { id: 'tc3', input: '["/about", "/contact"]\n"/about/team"', expectedOutput: 'null', points: 30 }
+    ],
+    optimalComplexity: { time: 'O(R * L) where R is number of routes and L is length of URL', space: 'O(P) for parsed parameters' },
+    tags: ['routing', 'string-parsing', 'api'],
+    evaluationFocus: ['correctness', 'readability'],
+    hints: ['Try splitting both the registered route and the incoming URL by the "/" character and comparing them segment by segment.'],
+    createdAt: '2025-01-10T00:00:00Z'
+  },
+  {
+    id: 'in-memory-ttl-cache',
+    title: '32. In-Memory Cache with TTL',
+    category: 'backend',
+    difficulty: 'medium',
+    language: 'javascript',
+    estimatedMinutes: 35,
+    prompt: `Implement a time-to-live (TTL) cache system commonly used in backend services to reduce database load.\n\nCreate a \`Cache\` class with the following methods:\n- \`set(key, value, ttl)\`: Stores a key-value pair. \`ttl\` is the time-to-live in milliseconds.\n- \`get(key)\`: Returns the value if it exists and has not expired. If it has expired or does not exist, return \`-1\`.\n- \`count()\`: Returns the number of unexpired keys currently in the cache.\n\nKeys expire exactly \`ttl\` milliseconds after they are set.`,
+    constraints: [
+      'The cache must handle potentially thousands of keys.',
+      'Expired keys should ideally be cleaned up so they do not cause a memory leak over time.'
+    ],
+    examples: [
+      { input: 'cache.set("user_1", "data", 100); cache.get("user_1"); // wait 150ms; cache.get("user_1")', output: '"data" then -1', explanation: 'The key expires after 100ms, so the second get() returns -1.' }
+    ],
+    testCases: [
+      { id: 'tc1', input: 'set:A:10:100\nget:A\nwait:150\nget:A', expectedOutput: '10\n-1', points: 50 },
+      { id: 'tc2', input: 'set:B:20:50\nset:C:30:200\nwait:100\ncount', expectedOutput: '1', points: 50 }
+    ],
+    optimalComplexity: { time: 'O(1) for get and set', space: 'O(N) where N is number of active keys' },
+    tags: ['caching', 'hash-map', 'timers'],
+    evaluationFocus: ['correctness', 'efficiency', 'security'],
+    hints: ['Store the expiration timestamp alongside the value. Consider using setTimeout to actively delete keys, or passively delete them upon the next get/count call.'],
+    createdAt: '2025-01-11T00:00:00Z'
+  },
+  {
+    id: 'sliding-window-rate-limiter',
+    title: '33. Sliding Window Rate Limiter',
+    category: 'backend',
+    difficulty: 'expert',
+    language: 'javascript',
+    estimatedMinutes: 60,
+    prompt: `Design the core logic for a Sliding Window Log rate limiter to protect a backend API from DDoS attacks or abuse.\n\nImplement a \`RateLimiter\` class initialized with \`limit\` (max requests) and \`windowSize\` (time window in milliseconds).\nProvide a method \`isAllowed(userId, timestamp)\` that returns \`true\` if the request is allowed, or \`false\` if it exceeds the limit within the rolling window looking back from the given \`timestamp\`.\n\nUnlike fixed-window limiters, a sliding window must look at the exact continuous block of time preceding the current timestamp.`,
+    constraints: [
+      'Timestamps are always strictly increasing for a given user.',
+      'The system must be memory efficient. Old timestamps falling outside the window should be discarded.'
+    ],
+    examples: [
+      { input: 'limit=2, window=1000\nisAllowed("u1", 100)\nisAllowed("u1", 500)\nisAllowed("u1", 1000)\nisAllowed("u1", 1200)', output: 'true\ntrue\nfalse\ntrue', explanation: 'At t=1000, looking back to t=0, there are already 2 requests (100, 500), so it fails. At t=1200, looking back to t=200, the t=100 request is out of the window, leaving only t=500, so it passes.' }
+    ],
+    testCases: [
+      { id: 'tc1', input: 'init:2:1000\nallow:userA:100\nallow:userA:500\nallow:userA:1000', expectedOutput: 'true\ntrue\nfalse', points: 40 },
+      { id: 'tc2', input: 'init:2:1000\nallow:userA:100\nallow:userA:500\nallow:userB:900\nallow:userA:1200', expectedOutput: 'true\ntrue\ntrue\ntrue', points: 60 }
+    ],
+    optimalComplexity: { time: 'O(1) amortized per request (cleaning up old logs)', space: 'O(limit * U) where U is number of active users' },
+    tags: ['architecture', 'queues', 'security', 'api-design'],
+    evaluationFocus: ['efficiency', 'correctness', 'explanation'],
+    hints: ['For each user, maintain a queue (or array) of timestamps. When a new request comes in, remove all timestamps older than (currentTimestamp - windowSize), then check the length of the queue.'],
+    createdAt: '2025-01-12T00:00:00Z'
   }
 ];
