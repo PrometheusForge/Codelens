@@ -73,7 +73,7 @@ const LeaderboardRow = ({ model }) => {
   );
 };
 
-const Leaderboard = () => {
+export default function Leaderboard() {
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2 ml-2">

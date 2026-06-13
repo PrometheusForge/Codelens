@@ -1,3 +1,8 @@
+import React from 'react';
+import { Activity, Target } from 'lucide-react';
+import StatsRow from '../components/dashboard/StatsRow';
+import Leaderboard from '../components/dashboard/Leaderboard';
+
 export default function Dashboard() {
   return (
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 py-12 md:py-24 overflow-x-hidden">
