@@ -26,7 +26,8 @@ Rules:
 - If the problem has no optimal solution, explain the best you can achieve and why`;
 
 // ----- GROQ (Llama 3, Mixtral) -----
-export const queryGroq = async (prompt, modelId = 'llama3-70b-8192') => {
+// UPDATED DEFAULT TO ACTIVE MODEL
+export const queryGroq = async (prompt, modelId = 'llama-3.3-70b-versatile') => {
   const startTime = Date.now();
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -41,11 +42,14 @@ export const queryGroq = async (prompt, modelId = 'llama3-70b-8192') => {
         { role: 'user', content: prompt }
       ],
       max_tokens: 2048,
-      temperature: 0.1  // Low temperature = more consistent, deterministic code
+      temperature: 0.1
     })
   });
   
-  if (!response.ok) throw new Error(`Groq API error: ${response.status}`);
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(`Groq API error: ${JSON.stringify(err.error)}`);
+  }
   
   const data = await response.json();
   return {
@@ -59,7 +63,7 @@ export const queryGroq = async (prompt, modelId = 'llama3-70b-8192') => {
 };
 
 // ----- GOOGLE GEMINI -----
-export const queryGemini = async (prompt, modelId = 'gemini-1.5-flash') => {
+export const queryGemini = async (prompt, modelId = 'gemini-2.5-flash') => {
   const startTime = Date.now();
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
@@ -79,7 +83,10 @@ export const queryGemini = async (prompt, modelId = 'gemini-1.5-flash') => {
     }
   );
   
-  if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(`Gemini API error: ${JSON.stringify(err)}`);
+  }
   
   const data = await response.json();
   return {
@@ -95,8 +102,6 @@ export const queryGemini = async (prompt, modelId = 'gemini-1.5-flash') => {
 // ----- HUGGING FACE -----
 export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b-hf') => {
   const startTime = Date.now();
-  
-  // Combine the system prompt and the challenge for Hugging Face
   const fullPrompt = `${CODING_SYSTEM_PROMPT}\n\nChallenge:\n${prompt}`;
 
   const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
@@ -118,7 +123,6 @@ export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b
   if (!response.ok) throw new Error(`Hugging Face API error: ${response.status}`);
   
   const data = await response.json();
-  // Hugging Face typically returns an array with a generated_text string
   const content = Array.isArray(data) ? data[0].generated_text : data.generated_text;
 
   return {
@@ -126,32 +130,32 @@ export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b
     model: modelId,
     content: content ? content.trim() : "No code generated.",
     responseTimeMs: Date.now() - startTime,
-    inputTokens: 0, // HF free inference API doesn't explicitly return token counts
+    inputTokens: 0,
     outputTokens: 0,
   };
 };
 
+// --- UPDATED REGISTRY WITH ACTIVE GROQ MODELS ---
 export const MODEL_REGISTRY = [
   { 
     id: 'llama-3-70b',      
     label: 'Llama 3 70B',      
     provider: 'Groq',       
-    fn: (p) => queryGroq(p, 'llama3-70b-8192'), 
+    fn: (p) => queryGroq(p, 'llama-3.3-70b-versatile'), 
     color: '#4f46e5' 
   },
   { 
-    id: 'gemini-1.5-flash',     
-    label: 'Gemini 1.5 Flash', 
+    id: 'gemini-2.5-flash',     
+    label: 'Gemini 2.5 Flash', 
     provider: 'Google',     
     fn: (p) => queryGemini(p),                  
     color: '#22c55e' 
   },
   { 
     id: 'gemma-2-9b',       
-    label: 'Gemma 2 9B',       
+    label: 'Llama 3 8B',       
     provider: 'Groq',       
-    // Groq maps Gemma to this specific endpoint ID
-    fn: (p) => queryGroq(p, 'gemma-7b-it'),  
+    fn: (p) => queryGroq(p, 'llama-3.1-8b-instant'),  
     color: '#06b6d4' 
   },
   { 
@@ -188,7 +192,6 @@ export const queryAllModels = async (formattedPrompt, selectedModelIds) => {
   });
 };
 
-// Format a challenge object into a prompt string
 export const formatChallengePrompt = (challenge) => {
   return `# ${challenge.title}
 **Difficulty:** ${challenge.difficulty} | **Category:** ${challenge.category}
@@ -206,40 +209,105 @@ ${challenge.constraints.map(c => `- ${c}`).join('\n')}
 };
 
 // ----- THE AI JUDGE (Evaluation Engine) -----
-export const evaluateCodeSubmission = async (challengePrompt, submittedCode) => {
+export const evaluateCodeSubmission = async (challengePrompt, submittedCode, modelId = 'llama-3-70b') => {
   const systemPrompt = `You are a strict, expert code evaluator.
 You will be given a coding challenge prompt and a submitted code snippet.
 You must output ONLY a valid JSON object with exactly two keys:
 1. "score": an integer from 0 to 100 representing the code's correctness, efficiency, and readability.
 2. "feedback": a single, concise sentence explaining the score and suggesting one specific improvement.
-Do not include any markdown formatting, backticks, or other text.`;
+Do not include any markdown formatting, backticks, or other text. Return ONLY raw JSON.`;
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'llama3-70b-8192',
-      response_format: { type: "json_object" }, // Forces the AI to return perfect JSON
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Challenge Prompt:\n${challengePrompt}\n\nSubmitted Code:\n${submittedCode}` }
-      ],
-      temperature: 0.1
-    })
-  });
+  const userPrompt = `Challenge Prompt:\n${challengePrompt}\n\nSubmitted Code:\n${submittedCode}`;
 
-  if (!response.ok) throw new Error('Groq Evaluation API failed');
-  
-  const data = await response.json();
-  
   try {
-    // Parse the JSON string returned by the AI into a real JavaScript object
-    return JSON.parse(data.choices[0].message.content);
-  } catch (e) {
-    console.error("Failed to parse JSON from AI:", data.choices[0].message.content);
-    return { score: 0, feedback: "Evaluation error: AI returned an invalid format." };
+    if (modelId === 'gemini-2.5-flash') {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: "application/json"
+            }
+          })
+        }
+      );
+      
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(`Gemini failed: ${JSON.stringify(err)}`);
+      }
+      const data = await response.json();
+      return JSON.parse(data.candidates[0].content.parts[0].text);
+    } 
+    
+    else if (modelId === 'codellama-7b-hf') {
+      const response = await fetch(`https://api-inference.huggingface.co/models/codellama/CodeLlama-7b-hf`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_HF_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: `${systemPrompt}\n\n${userPrompt}`,
+          parameters: {
+            max_new_tokens: 500,
+            temperature: 0.1,
+            return_full_text: false
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error(`Hugging Face failed with status: ${response.status}`);
+      const data = await response.json();
+      const content = Array.isArray(data) ? data[0].generated_text : data.generated_text;
+      
+      const cleanJsonStr = (content || "").replace(/```json/gi, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanJsonStr);
+    }
+    
+    else {
+      // UPDATED AI JUDGE MAP
+      const groqModelMap = {
+        'llama-3-70b': 'llama-3.3-70b-versatile',
+        'gemma-2-9b': 'llama-3.1-8b-instant'
+      };
+      
+      const targetModel = groqModelMap[modelId] || 'llama-3.3-70b-versatile';
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: targetModel,
+          response_format: { type: "json_object" }, 
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.1,
+          max_tokens: 1024
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(`Groq Judge failed: ${JSON.stringify(err.error)}`);
+      }
+      const data = await response.json();
+      return JSON.parse(data.choices[0].message.content);
+    }
+  } catch (error) {
+    console.error("Judge routing error:", error);
+    return { 
+      score: 'Err', 
+      feedback: `API Error: ${error.message}` 
+    };
   }
 };
