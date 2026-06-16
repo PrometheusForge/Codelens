@@ -1,16 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, Cpu, Layers, Target, 
-  TrendingUp, TrendingDown, Crown, 
-  ChevronRight, TerminalSquare, Sparkles, Zap, Box
+  TrendingUp, TrendingDown, Loader2
 } from 'lucide-react';
-
-const TELEMETRY_STATS = [
-  { id: 'evals', label: 'Total Evaluations', value: '1,428', trend: '+12.4%', isPositive: true, icon: Activity },
-  { id: 'models', label: 'Models Benchmarked', value: '8', trend: '+2 this week', isPositive: true, icon: Cpu },
-  { id: 'challenges', label: 'Active Challenges', value: '47', trend: 'No change', isPositive: null, icon: Layers },
-  { id: 'correctness', label: 'Global Correctness', value: '78.2%', trend: '-1.2%', isPositive: false, icon: Target },
-];
+import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
 
 const StatCard = ({ stat, index }) => {
   const Icon = stat.icon;
@@ -55,11 +48,142 @@ const StatCard = ({ stat, index }) => {
 };
 
 export default function StatsRow() {
+  const [statsData, setStatsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        // We added 'created_at' to the fetch so we can do time-travel math
+        const { data, error } = await supabase
+          .from('evaluations')
+          .select('model_id, challenge_prompt, correctness, created_at');
+
+        if (error) throw error;
+
+        // Fallback for empty database state
+        if (!data || data.length === 0) {
+          if (isMounted) {
+            setStatsData([
+              { id: 'evals', label: 'Total Evaluations', value: '0', trend: 'NO DATA', isPositive: null, icon: Activity },
+              { id: 'models', label: 'Models Benchmarked', value: '0', trend: 'NO DATA', isPositive: null, icon: Cpu },
+              { id: 'challenges', label: 'Active Challenges', value: '0', trend: 'NO DATA', isPositive: null, icon: Layers },
+              { id: 'correctness', label: 'Global Correctness', value: '0%', trend: 'NO DATA', isPositive: null, icon: Target },
+            ]);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // --- TIME TRAVEL MATH SETUP ---
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+        // Sort data into buckets
+        const currentWeekData = data.filter(d => new Date(d.created_at) >= oneWeekAgo);
+        const previousWeekData = data.filter(d => {
+          const date = new Date(d.created_at);
+          return date >= twoWeeksAgo && date < oneWeekAgo;
+        });
+        const upToOneWeekAgoData = data.filter(d => new Date(d.created_at) < oneWeekAgo);
+
+        // --- 1. TOTAL EVALUATIONS ---
+        const totalEvals = data.length;
+        let evalTrend = "NO CHANGE";
+        let evalIsPositive = null;
+        
+        if (previousWeekData.length === 0 && currentWeekData.length > 0) {
+          evalTrend = `+${currentWeekData.length} THIS WEEK`;
+          evalIsPositive = true;
+        } else if (previousWeekData.length > 0) {
+          const percentChange = ((currentWeekData.length - previousWeekData.length) / previousWeekData.length) * 100;
+          evalTrend = `${percentChange > 0 ? '+' : ''}${percentChange.toFixed(1)}%`;
+          evalIsPositive = percentChange > 0 ? true : percentChange < 0 ? false : null;
+        }
+
+        // --- 2. MODELS BENCHMARKED ---
+        const uniqueModelsAll = new Set(data.map(row => row.model_id).filter(Boolean)).size;
+        const uniqueModelsBefore = new Set(upToOneWeekAgoData.map(row => row.model_id).filter(Boolean)).size;
+        const newModelsThisWeek = uniqueModelsAll - uniqueModelsBefore;
+        
+        let modelTrend = "NO CHANGE";
+        let modelIsPositive = null;
+        if (newModelsThisWeek > 0) {
+          modelTrend = `+${newModelsThisWeek} THIS WEEK`;
+          modelIsPositive = true;
+        }
+
+        // --- 3. ACTIVE CHALLENGES ---
+        const uniqueChallengesAll = new Set(data.map(row => row.challenge_prompt).filter(Boolean)).size;
+        const uniqueChallengesBefore = new Set(upToOneWeekAgoData.map(row => row.challenge_prompt).filter(Boolean)).size;
+        const newChallengesThisWeek = uniqueChallengesAll - uniqueChallengesBefore;
+
+        let challengeTrend = "NO CHANGE";
+        let challengeIsPositive = null;
+        if (newChallengesThisWeek > 0) {
+          challengeTrend = `+${newChallengesThisWeek} THIS WEEK`;
+          challengeIsPositive = true;
+        }
+
+        // --- 4. GLOBAL CORRECTNESS ---
+        const getAvg = (arr) => arr.length ? arr.reduce((sum, d) => sum + (Number(d.correctness) || 0), 0) / arr.length : 0;
+        const avgAll = getAvg(data);
+        const avgCurrentWeek = getAvg(currentWeekData);
+        const avgPrevWeek = getAvg(previousWeekData);
+
+        let corrTrend = "NO CHANGE";
+        let corrIsPositive = null;
+
+        if (previousWeekData.length === 0 && currentWeekData.length > 0) {
+          corrTrend = "NEW DATA";
+          corrIsPositive = true;
+        } else if (previousWeekData.length > 0 && currentWeekData.length > 0) {
+          const diff = avgCurrentWeek - avgPrevWeek;
+          corrTrend = `${diff > 0 ? '+' : ''}${diff.toFixed(1)}%`;
+          corrIsPositive = diff > 0 ? true : diff < 0 ? false : null;
+        }
+
+        // --- UPDATE STATE ---
+        if (isMounted) {
+          setStatsData([
+            { id: 'evals', label: 'Total Evaluations', value: totalEvals.toLocaleString(), trend: evalTrend, isPositive: evalIsPositive, icon: Activity },
+            { id: 'models', label: 'Models Benchmarked', value: uniqueModelsAll.toString(), trend: modelTrend, isPositive: modelIsPositive, icon: Cpu },
+            { id: 'challenges', label: 'Active Challenges', value: uniqueChallengesAll.toString(), trend: challengeTrend, isPositive: challengeIsPositive, icon: Layers },
+            { id: 'correctness', label: 'Global Correctness', value: `${avgAll.toFixed(1)}%`, trend: corrTrend, isPositive: corrIsPositive, icon: Target },
+          ]);
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center gap-3 rounded-[2rem] bg-white/[0.02] ring-1 ring-white/5 text-zinc-500">
+         <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+         <span className="text-xs font-medium tracking-wide uppercase">Calculating Global Telemetry...</span>
+      </div>
+    );
+  }
+
   return (
     <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {TELEMETRY_STATS.map((stat, idx) => (
+      {statsData.map((stat, idx) => (
         <StatCard key={stat.id} stat={stat} index={idx} />
       ))}
     </section>
   );
-};
+}

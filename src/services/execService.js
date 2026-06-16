@@ -1,15 +1,15 @@
 const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 
+// Defines the exact runtime versions used in the Piston Sandbox
 const LANGUAGE_CONFIG = {
   javascript: { language: 'javascript', version: '18.15.0', extension: 'js' },
-  typescript: { language: 'typescript', version: '5.0.3', extension: 'ts' },
-  python:     { language: 'python',     version: '3.10.0', extension: 'py' },
-  java:       { language: 'java',       version: '15.0.2', extension: 'java' },
-  go:         { language: 'go',         version: '1.16.2', extension: 'go' },
-  rust:       { language: 'rust',       version: '1.50.0', extension: 'rs' },
+  python:     { language: 'python',     version: '3.10.0', extension: 'py' }
 };
 
-export const executeCode = async (code, language = 'javascript', stdin = '') => {
+/**
+ * Sends the code directly to the Piston API for isolated Docker execution.
+ */
+export const executeCode = async (code, language = 'javascript') => {
   const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
   
   const response = await fetch(PISTON_URL, {
@@ -19,11 +19,11 @@ export const executeCode = async (code, language = 'javascript', stdin = '') => 
       language: config.language,
       version: config.version,
       files: [{ name: `main.${config.extension}`, content: code }],
-      stdin,
+      stdin: "",
       args: [],
       compile_timeout: 10000,
       run_timeout: 3000,
-      run_memory_limit: 128000000  // 128MB
+      run_memory_limit: 128000000 // 128MB RAM limit to prevent AI infinite loop crashes
     })
   });
   
@@ -36,67 +36,133 @@ export const executeCode = async (code, language = 'javascript', stdin = '') => 
     stderr:       result.run?.stderr || '',
     exitCode:     result.run?.code ?? -1,
     compileError: result.compile?.stderr || '',
-    timedOut:     result.run?.code === 1 && result.run.stderr?.includes('TLE'),
+    timedOut:     result.run?.signal === 'SIGKILL',
     success:      result.run?.code === 0 && !result.compile?.stderr
   };
 };
 
-const buildTestHarness = (code, language, testCase, challengeTitle) => {
-  // For JavaScript: wrap in IIFE, call the main function with test input
+/**
+ * THE SECRET SAUCE: The Test Harness.
+ * This dynamically appends code to the bottom of the AI's script to execute the function 
+ * with our specific test cases and print the results to standard output.
+ */
+const buildTestHarness = (code, language, testCase) => {
+  // Formats raw inputs like '[2,7,11,15]\n9' into function arguments '[2,7,11,15], 9'
+  const formattedInput = testCase.input.replace(/\n/g, ', ');
+
   if (language === 'javascript') {
     return `
 ${code}
 
-// Test harness
-const input = ${JSON.stringify(testCase.input)};
+// --- AUTOMATED EVALUATION HARNESS ---
 try {
-  // Normalize: find the main exported function by common naming conventions
-  const fnName = Object.keys({ twoSum, longestSubstring, ...this }).find(k => typeof eval(k) === 'function');
-  // Simple approach: just run the code with console.log at end
-  process.stdout.write(String(result));
+  // Regex to dynamically find the name of the function the AI generated
+  const codeStr = \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+  const match = codeStr.match(/(?:function\\s+([a-zA-Z0-9_]+))|(?:(?:const|let|var)\\s+([a-zA-Z0-9_]+)\\s*=\\s*(?:async\\s*)?(?:function|\\([^)]*\\)\\s*=>|[a-zA-Z0-9_]+\\s*=>))/);
+  
+  if (match && (match[1] || match[2])) {
+    const fnName = match[1] || match[2];
+    
+    // Execute the AI's function with our test case inputs
+    const result = eval(fnName + '(' + ${JSON.stringify(formattedInput)} + ')');
+    
+    // Format the output specifically for strict comparison
+    if (Array.isArray(result)) {
+       console.log(result.join(' ')); // e.g., transforms [0,1] into "0 1"
+    } else {
+       console.log(result);
+    }
+  } else {
+    console.error("EVAL_ERROR: Could not locate a valid function declaration.");
+  }
 } catch(e) {
-  process.stderr.write(e.message);
+  console.error(e.message);
 }
 `;
   }
-  // Add Python, Java harnesses similarly
-  return code;
+
+  if (language === 'python') {
+    return `
+${code}
+
+# --- AUTOMATED EVALUATION HARNESS ---
+import inspect
+import sys
+
+try:
+    # Dynamically find the first function defined in the AI's script
+    funcs = [f for f in globals().values() if inspect.isfunction(f)]
+    if len(funcs) > 0:
+        target_fn = funcs[0]
+        
+        # Parse the string arguments into actual Python tuples/lists
+        args = eval(f"({${JSON.stringify(formattedInput)}})")
+        if not isinstance(args, tuple):
+            args = (args,)
+        
+        # Execute the AI's function
+        result = target_fn(*args)
+        
+        if isinstance(result, list):
+            print(" ".join(map(str, result)))
+        else:
+            print(result)
+    else:
+        print("EVAL_ERROR: No function found.", file=sys.stderr)
+except Exception as e:
+    print(f"{str(e)}", file=sys.stderr)
+`;
+  }
+
+  return code; 
 };
 
+/**
+ * Loops through the challenge test cases, runs them in the Sandbox, and tabulates a score.
+ */
 export const runTestCases = async (code, language, testCases) => {
   const results = [];
   
   for (const testCase of testCases) {
     const startTime = Date.now();
-    const execResult = await executeCode(code, language, testCase.input);
+    
+    // 1. Wrap the pure code in our execution harness
+    const harnessedCode = buildTestHarness(code, language, testCase);
+    
+    // 2. Send to Piston Docker Sandbox
+    const execResult = await executeCode(harnessedCode, language);
     const executionTimeMs = Date.now() - startTime;
     
+    // 3. Compare terminal output against Expected Output
     const actualOutput = execResult.stdout.trim();
-    const passed = actualOutput === testCase.expectedOutput.trim();
+    const expectedOutput = String(testCase.expectedOutput).trim();
+    
+    // It passes if Piston didn't crash AND the output exactly matches
+    const passed = execResult.success && actualOutput === expectedOutput;
     
     results.push({
-      testCaseId:      testCase.id,
+      testCaseId:      testCase.id || Date.now(),
       input:           testCase.input,
-      expectedOutput:  testCase.expectedOutput,
-      actualOutput,
-      passed,
-      executionTimeMs,
+      expectedOutput:  expectedOutput,
+      actualOutput:    actualOutput,
+      passed:          passed,
+      executionTimeMs: executionTimeMs,
       error:           execResult.stderr || execResult.compileError || null,
       timedOut:        execResult.timedOut,
-      points:          passed ? testCase.points : 0
+      points:          passed ? (testCase.points || 10) : 0
     });
   }
   
-  const totalPoints = results.reduce((sum, r) => sum + (r.passed ? r.points : 0), 0);
-  const maxPoints   = testCases.reduce((sum, t) => sum + t.points, 0);
+  const totalPoints = results.reduce((sum, r) => sum + r.points, 0);
+  const maxPoints   = testCases.reduce((sum, t) => sum + (t.points || 10), 0);
+  const passedCount = results.filter(r => r.passed).length;
   
   return {
     testResults:    results,
-    passedCount:    results.filter(r => r.passed).length,
+    passedCount:    passedCount,
     totalCount:     results.length,
-    passRate:       results.filter(r => r.passed).length / results.length,
-    scorePercent:   Math.round((totalPoints / maxPoints) * 100),
-    allPassed:      results.every(r => r.passed),
-    avgExecutionMs: results.reduce((sum, r) => sum + r.executionTimeMs, 0) / results.length
+    scorePercent:   maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0,
+    allPassed:      passedCount === results.length,
+    avgExecutionMs: results.length > 0 ? Math.round(results.reduce((sum, r) => sum + r.executionTimeMs, 0) / results.length) : 0
   };
 };

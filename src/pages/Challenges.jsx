@@ -246,7 +246,14 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              navigate(`/evaluate/${challenge.id}`, { state: { challengePrompt: challenge.prompt } });
+              
+              // THE FIX: Adding `challenge: challenge` to the state payload
+              navigate(`/evaluate/${challenge.id}`, { 
+                state: { 
+                  challengePrompt: challenge.prompt,
+                  challenge: challenge // <-- This passes the testCases to the sandbox!
+                } 
+              });
             }}
             className="group relative w-full flex items-center justify-center gap-3 rounded-full bg-zinc-100 py-3.5 text-sm font-semibold text-zinc-950 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
           >
@@ -458,7 +465,7 @@ export default function Challenges() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           
           {/* FILTER SIDEBAR */}
           <aside className="lg:col-span-3 flex flex-col gap-10 lg:sticky lg:top-8 lg:self-start">

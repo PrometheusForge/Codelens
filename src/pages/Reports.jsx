@@ -1,48 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, Download, Copy, Printer, ChevronLeft, 
-  ChevronDown, ChevronUp, Calendar, Check, Activity, Code2
+  ChevronDown, ChevronUp, Calendar, Check, Code2, Loader2
 } from 'lucide-react';
-
-// --- MOCK DATA ---
-const MOCK_SESSIONS = [
-  {
-    id: 'sess_1',
-    challengeTitle: 'Two Sum',
-    date: '2026-06-12T05:30:00Z',
-    models: [
-      { name: 'Gemini 1.5 Flash', score: 92, time: '0.8s' },
-      { name: 'Llama 3 (70B)', score: 88, time: '1.2s' },
-      { name: 'Mistral 7B', score: 65, time: '0.9s' }
-    ],
-    analystNotes: 'Gemini and Llama both successfully implemented the optimal O(n) hash map approach. Mistral failed the edge case with negative numbers and defaulted to a brute-force O(n^2) loop.',
-    conclusion: 'For standard algorithmic tasks involving hash maps, smaller models like Mistral 7B may require more explicit prompting regarding edge cases. Gemini 1.5 Flash provides the best speed-to-correctness ratio here.',
-    codeSnippets: [
-      {
-        model: 'Gemini 1.5 Flash',
-        language: 'javascript',
-        code: `function twoSum(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n}`
-      },
-      {
-        model: 'Mistral 7B',
-        language: 'javascript',
-        code: `function twoSum(nums, target) {\n  for (let i = 0; i < nums.length; i++) {\n    for (let j = i + 1; j < nums.length; j++) {\n      if (nums[i] + nums[j] === target) return [i, j];\n    }\n  }\n  return [];\n}`
-      }
-    ]
-  },
-  {
-    id: 'sess_2',
-    challengeTitle: 'Token Bucket Rate Limiter',
-    date: '2026-06-10T14:15:00Z',
-    models: [
-      { name: 'GPT-4o', score: 96, time: '1.4s' },
-      { name: 'Llama 3 (70B)', score: 90, time: '2.1s' }
-    ],
-    analystNotes: 'Both models utilized lazy evaluation via timestamps, completely avoiding memory leaks associated with setInterval. GPT-4o\'s implementation was slightly more idiomatic.',
-    conclusion: '',
-    codeSnippets: []
-  }
-];
+import { supabase } from '../services/supabaseClient'; // Adjust path if needed
+import { MODEL_REGISTRY } from '../services/aiService'; // Adjust path if needed
 
 const Badge = ({ children, className = '' }) => (
   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ring-1 ring-inset ${className}`}>
@@ -63,18 +25,14 @@ const CodeAccordion = ({ snippet }) => {
           <Code2 className="w-4 h-4 text-zinc-500 print:text-zinc-800" />
           <span className="text-sm font-medium text-zinc-200 print:text-black">{snippet.model}</span>
           <Badge className="bg-zinc-800 text-zinc-400 ring-zinc-700 print:bg-zinc-200 print:text-zinc-600 print:ring-transparent">
-            {snippet.language}
+            {snippet.language || 'Code'}
           </Badge>
         </div>
         {isOpen ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
       </button>
       
-      {/* 
-        Using standard React conditional rendering, but adding print:block 
-        so code is always visible when printing regardless of accordion state.
-      */}
       <div className={`${isOpen ? 'block' : 'hidden'} print:block border-t border-white/5 print:border-zinc-200 p-4 bg-[#0c0c0e] print:bg-white`}>
-        <pre className="text-xs font-mono text-zinc-300 print:text-black whitespace-pre-wrap overflow-x-auto">
+        <pre className="text-xs font-mono text-zinc-300 print:text-black whitespace-pre-wrap overflow-x-auto break-words">
           {snippet.code}
         </pre>
       </div>
@@ -82,12 +40,107 @@ const CodeAccordion = ({ snippet }) => {
   );
 };
 
+// Generates a short title for long prompts
+const truncatePrompt = (prompt) => {
+  if (!prompt) return 'Unknown Challenge';
+  const words = prompt.split(' ');
+  if (words.length <= 8) return prompt;
+  return words.slice(0, 8).join(' ') + '...';
+};
+
 export default function Reports() {
+  const [reportsData, setReportsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [conclusions, setConclusions] = useState(
-    MOCK_SESSIONS.reduce((acc, curr) => ({ ...acc, [curr.id]: curr.conclusion }), {})
-  );
+  const [conclusions, setConclusions] = useState({});
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAndGroupReports = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('evaluations')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          if (isMounted) setIsLoading(false);
+          return;
+        }
+
+        // Group rows by the exact challenge prompt to create "Sessions"
+        const groupedSessions = {};
+
+        data.forEach(row => {
+          const prompt = row.challenge_prompt;
+          if (!prompt) return;
+
+          // Map model ID to friendly label
+          const registryEntry = MODEL_REGISTRY.find(m => m.id === row.model_id);
+          const modelName = registryEntry ? registryEntry.label : row.model_id;
+
+          if (!groupedSessions[prompt]) {
+            groupedSessions[prompt] = {
+              id: `sess_${row.id}`, // Use the first encountered row ID as the session anchor
+              challengeTitle: truncatePrompt(prompt),
+              fullPrompt: prompt,
+              date: row.created_at, // Takes the most recent timestamp for this group
+              models: [],
+              analystNotes: '',
+              codeSnippets: []
+            };
+          }
+
+          // Add the model performance to this session
+          groupedSessions[prompt].models.push({
+            name: modelName,
+            score: row.weighted_total || 0,
+            time: 'Evaluated' // Defaulting since ms time isn't stored in this table schema
+          });
+
+          // Append the Universal Judge's feedback to the analyst notes
+          if (row.notes) {
+            groupedSessions[prompt].analystNotes += `\n\n### [${modelName}]\n${row.notes}`;
+          }
+
+          // If you ever start saving raw code in `test_results.code`, it will inject here
+          if (row.test_results && row.test_results.code) {
+             groupedSessions[prompt].codeSnippets.push({
+               model: modelName,
+               language: 'Auto',
+               code: row.test_results.code
+             });
+          }
+        });
+
+        // Convert the grouped object back into an array
+        const formattedReports = Object.values(groupedSessions);
+
+        if (isMounted) {
+          setReportsData(formattedReports);
+          
+          // Pre-populate any existing conclusions state
+          const initialConclusions = {};
+          formattedReports.forEach(r => initialConclusions[r.id] = '');
+          setConclusions(initialConclusions);
+        }
+
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchAndGroupReports();
+
+    return () => { isMounted = false; };
+  }, []);
 
   // --- ACTIONS ---
   const handlePrint = () => {
@@ -110,6 +163,7 @@ export default function Reports() {
   const handleCopyMarkdown = (session) => {
     let md = `# Evaluation Report: ${session.challengeTitle}\n`;
     md += `**Date:** ${new Date(session.date).toLocaleDateString()}\n\n`;
+    md += `**Prompt:**\n> ${session.fullPrompt}\n\n`;
     
     md += `## Model Performance\n`;
     md += `| Model | Score | Time |\n|---|---|---|\n`;
@@ -117,7 +171,7 @@ export default function Reports() {
       md += `| ${m.name} | ${m.score} | ${m.time} |\n`;
     });
     
-    md += `\n## Analyst Notes\n${session.analystNotes}\n`;
+    md += `\n## Analyst Notes (Judge Feedback)\n${session.analystNotes.trim()}\n`;
     
     const currentConclusion = conclusions[session.id];
     if (currentConclusion) {
@@ -128,7 +182,7 @@ export default function Reports() {
       md += `\n## Code Extracts\n`;
       session.codeSnippets.forEach(snippet => {
         md += `\n### ${snippet.model}\n`;
-        md += `\`\`\`${snippet.language}\n${snippet.code}\n\`\`\`\n`;
+        md += `\`\`\`${snippet.language || 'text'}\n${snippet.code}\n\`\`\`\n`;
       });
     }
 
@@ -148,7 +202,7 @@ export default function Reports() {
         <div className="mx-auto max-w-[1000px] px-4 md:px-8">
           
           {/* Action Bar (Hidden when printing) */}
-          <div className="mb-10 flex items-center justify-between print:hidden">
+          <div className="mb-10 flex flex-wrap items-center justify-between gap-4 print:hidden">
             <button 
               onClick={() => setSelectedSession(null)}
               className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
@@ -184,7 +238,7 @@ export default function Reports() {
               <FileText className="w-5 h-5" />
               <span className="text-xs font-semibold uppercase tracking-[0.2em]">Evaluation Report</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-white print:text-black mb-4">
+            <h1 className="text-3xl md:text-5xl font-semibold tracking-tighter text-white print:text-black mb-4 leading-tight">
               {selectedSession.challengeTitle}
             </h1>
             <div className="flex items-center gap-2 text-sm text-zinc-400 print:text-zinc-600">
@@ -196,6 +250,16 @@ export default function Reports() {
           {/* Document Content */}
           <div className="space-y-12">
             
+            {/* Original Prompt */}
+            <section>
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
+                Original Challenge Prompt
+              </h2>
+              <div className="p-4 rounded-xl bg-white/[0.02] ring-1 ring-white/5 text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap print:bg-zinc-50 print:text-black print:ring-zinc-200">
+                {selectedSession.fullPrompt}
+              </div>
+            </section>
+
             {/* Performance Table */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-6 print:text-zinc-800">
@@ -223,26 +287,26 @@ export default function Reports() {
               </div>
             </section>
 
-            {/* Analyst Notes */}
+            {/* Analyst Notes / AI Judge Feedback */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
-                Analyst Notes
+                AI Judge Feedback Logs
               </h2>
-              <div className="text-zinc-300 leading-relaxed print:text-black">
-                {selectedSession.analystNotes || "No preliminary notes recorded."}
+              <div className="text-zinc-300 text-sm leading-relaxed print:text-black whitespace-pre-wrap">
+                {selectedSession.analystNotes.trim() || "No preliminary notes recorded."}
               </div>
             </section>
 
             {/* Editable Conclusions */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
-                Final Conclusion
+                Final Conclusion & Human Notes
               </h2>
               <div className="relative group">
                 <textarea 
-                  value={conclusions[selectedSession.id]}
+                  value={conclusions[selectedSession.id] || ''}
                   onChange={(e) => handleConclusionChange(selectedSession.id, e.target.value)}
-                  placeholder="Record your final observations and recommendations here..."
+                  placeholder="Record your final observations, manual code reviews, and recommendations here..."
                   className="w-full min-h-[120px] rounded-xl bg-white/[0.02] p-4 text-sm text-zinc-300 leading-relaxed placeholder-zinc-600 ring-1 ring-white/10 transition-all focus:bg-white/[0.04] focus:outline-none focus:ring-white/20 resize-y print:bg-transparent print:ring-0 print:p-0 print:text-black print:resize-none"
                 />
               </div>
@@ -284,45 +348,60 @@ export default function Reports() {
         <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
           <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] ring-1 ring-white/5 overflow-hidden">
             
-            <table className="w-full text-left text-sm border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-white/10 bg-black/40">
-                  <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Date</th>
-                  <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Challenge</th>
-                  <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Models Evaluated</th>
-                  <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {MOCK_SESSIONS.map((session) => (
-                  <tr key={session.id} className="group transition-colors hover:bg-white/[0.02]">
-                    <td className="py-4 px-6 whitespace-nowrap text-zinc-400 font-mono text-xs">
-                      {new Date(session.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="font-medium text-zinc-200">{session.challengeTitle}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-wrap gap-2">
-                        {session.models.map((m, idx) => (
-                          <Badge key={idx} className="bg-white/[0.03] text-zinc-400 ring-white/10">
-                            {m.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <button 
-                        onClick={() => setSelectedSession(session)}
-                        className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-4 py-2 text-xs font-semibold text-zinc-300 ring-1 ring-white/10 transition-all group-hover:bg-white/[0.08] active:scale-[0.98]"
-                      >
-                        View Report
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {isLoading ? (
+               <div className="flex flex-col items-center justify-center h-64 gap-3 text-zinc-500">
+                 <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+                 <span className="text-xs font-medium tracking-wide uppercase">Compiling Evaluation Logs...</span>
+               </div>
+            ) : reportsData.length === 0 ? (
+               <div className="flex items-center justify-center h-64 text-zinc-500 text-xs font-medium tracking-wide uppercase">
+                 No reports generated yet. Run a challenge in the Arena!
+               </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-black/40">
+                      <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Date</th>
+                      <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Challenge Scenario</th>
+                      <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Models Evaluated</th>
+                      <th className="py-4 px-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {reportsData.map((session) => (
+                      <tr key={session.id} className="group transition-colors hover:bg-white/[0.02]">
+                        <td className="py-4 px-6 whitespace-nowrap text-zinc-400 font-mono text-xs">
+                          {new Date(session.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="font-medium text-zinc-200" title={session.fullPrompt}>
+                            {session.challengeTitle}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex flex-wrap gap-2">
+                            {session.models.map((m, idx) => (
+                              <Badge key={idx} className="bg-white/[0.03] text-zinc-400 ring-white/10">
+                                {m.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-right whitespace-nowrap">
+                          <button 
+                            onClick={() => setSelectedSession(session)}
+                            className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-4 py-2 text-xs font-semibold text-zinc-300 ring-1 ring-white/10 transition-all group-hover:bg-white/[0.08] active:scale-[0.98]"
+                          >
+                            View Report
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
           </div>
         </div>

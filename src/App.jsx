@@ -5,6 +5,7 @@ import Challenges from './pages/Challenges'
 import Evaluate from './pages/Evaluate'
 import Dashboard from './pages/Dashboard'
 import Reports from './pages/Reports'
+import Arena from './pages/Arena'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/evaluate/:challengeId?" element={<Evaluate />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/arena" element={<Arena />} />
       </Routes>
     </PageLayout>
   )

@@ -1,97 +1,7 @@
-import React from 'react';
-import { LayoutGrid, Clock, CheckCircle2 } from 'lucide-react';
-
-// --- MOCK DATA ---
-const MODELS = ['Gemini 1.5 Flash', 'Llama 3 (70B)', 'GPT-4o', 'Mistral 7B', 'Gemma 2 (9B)'];
-
-// We structure data by Category -> Challenge -> Array of Model Results (matching the MODELS array order)
-const HEATMAP_DATA = [
-  {
-    category: 'Algorithms',
-    challenges: [
-      { 
-        name: 'Two Sum', 
-        results: [
-          { score: 98, passRate: '100%', time: '0.8s' },
-          { score: 95, passRate: '100%', time: '1.2s' },
-          { score: 100, passRate: '100%', time: '0.9s' },
-          { score: 75, passRate: '75%', time: '0.7s' },
-          { score: 70, passRate: '75%', time: '0.6s' }
-        ] 
-      },
-      { 
-        name: 'LRU Cache', 
-        results: [
-          { score: 85, passRate: '100%', time: '1.4s' },
-          { score: 82, passRate: '100%', time: '1.8s' },
-          { score: 92, passRate: '100%', time: '1.2s' },
-          { score: 45, passRate: '50%', time: '1.1s' },
-          { score: 55, passRate: '50%', time: '1.0s' }
-        ] 
-      },
-      { 
-        name: 'Word Ladder', 
-        results: [
-          { score: 72, passRate: '75%', time: '2.1s' },
-          { score: 88, passRate: '100%', time: '2.4s' },
-          { score: 95, passRate: '100%', time: '1.8s' },
-          { score: 35, passRate: '25%', time: 'Timeout' },
-          { score: null, passRate: null, time: null } // Not Evaluated
-        ] 
-      }
-    ]
-  },
-  {
-    category: 'Frontend',
-    challenges: [
-      { 
-        name: 'Virtual Scroll Engine', 
-        results: [
-          { score: 90, passRate: '100%', time: '1.1s' },
-          { score: 85, passRate: '100%', time: '1.5s' },
-          { score: 94, passRate: '100%', time: '1.2s' },
-          { score: 65, passRate: '50%', time: '0.9s' },
-          { score: 60, passRate: '50%', time: '0.8s' }
-        ] 
-      },
-      { 
-        name: 'Promise.allSettled', 
-        results: [
-          { score: 95, passRate: '100%', time: '0.6s' },
-          { score: 92, passRate: '100%', time: '0.9s' },
-          { score: 98, passRate: '100%', time: '0.7s' },
-          { score: 80, passRate: '100%', time: '0.5s' },
-          { score: 75, passRate: '75%', time: '0.5s' }
-        ] 
-      }
-    ]
-  },
-  {
-    category: 'System Design',
-    challenges: [
-      { 
-        name: 'Pub/Sub Broker', 
-        results: [
-          { score: 88, passRate: '100%', time: '1.9s' },
-          { score: 92, passRate: '100%', time: '2.3s' },
-          { score: 96, passRate: '100%', time: '1.7s' },
-          { score: 55, passRate: '50%', time: '1.4s' },
-          { score: null, passRate: null, time: null }
-        ] 
-      },
-      { 
-        name: 'Token Bucket Limiter', 
-        results: [
-          { score: 82, passRate: '100%', time: '1.5s' },
-          { score: 89, passRate: '100%', time: '1.8s' },
-          { score: 90, passRate: '100%', time: '1.4s' },
-          { score: 45, passRate: '25%', time: '1.1s' },
-          { score: 40, passRate: '25%', time: '1.0s' }
-        ] 
-      }
-    ]
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { LayoutGrid, Target, Zap, Loader2 } from 'lucide-react';
+import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
+import { MODEL_REGISTRY } from '../../services/aiService'; // Adjust path if needed
 
 // --- UTILS & MICRO-COMPONENTS ---
 
@@ -105,8 +15,16 @@ const getCellStyles = (score) => {
   return 'bg-rose-500/80 border border-rose-400/20 text-rose-50';
 };
 
+// Generates a short title for long prompts
+const truncatePrompt = (prompt) => {
+  if (!prompt) return 'Unknown Challenge';
+  const words = prompt.split(' ');
+  if (words.length <= 5) return prompt;
+  return words.slice(0, 5).join(' ') + '...';
+};
+
 const HeatmapCell = ({ data, modelName }) => {
-  const { score, passRate, time } = data;
+  const { score, correctness, efficiency } = data || {};
   const isEvaluated = score !== null && score !== undefined;
   
   return (
@@ -135,17 +53,17 @@ const HeatmapCell = ({ data, modelName }) => {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5 text-zinc-400">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Pass Rate</span>
+                    <Target className="w-3.5 h-3.5" />
+                    <span>Correctness</span>
                   </div>
-                  <span className="font-mono text-zinc-200">{passRate}</span>
+                  <span className="font-mono text-zinc-200">{correctness}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5 text-zinc-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Response Time</span>
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Efficiency</span>
                   </div>
-                  <span className="font-mono text-zinc-200">{time}</span>
+                  <span className="font-mono text-zinc-200">{efficiency}</span>
                 </div>
               </div>
             ) : (
@@ -166,6 +84,98 @@ const HeatmapCell = ({ data, modelName }) => {
 // --- MAIN COMPONENT ---
 
 export default function HeatmapGrid() {
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [activeModels, setActiveModels] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchHeatmapData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 1. Fetch raw data
+        const { data, error } = await supabase
+          .from('evaluations')
+          .select('model_id, challenge_prompt, weighted_total, correctness, efficiency')
+          .not('challenge_prompt', 'is', null);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          if (isMounted) setIsLoading(false);
+          return;
+        }
+
+        // 2. Identify all unique models tested to create the columns
+        const modelIdsSet = new Set(data.map(r => r.model_id).filter(Boolean));
+        const modelsArray = Array.from(modelIdsSet).map(id => {
+          const reg = MODEL_REGISTRY.find(m => m.id === id);
+          return { id, label: reg ? reg.label : id };
+        });
+
+        // 3. Group evaluations by Challenge Prompt
+        const challengesMap = {};
+        data.forEach(row => {
+          const prompt = row.challenge_prompt;
+          const model = row.model_id;
+          
+          if (!prompt || !model) return;
+
+          if (!challengesMap[prompt]) {
+            challengesMap[prompt] = {};
+          }
+          
+          // If a model attempted the same prompt multiple times, average it
+          if (!challengesMap[prompt][model]) {
+            challengesMap[prompt][model] = { count: 0, score: 0, correct: 0, eff: 0 };
+          }
+          
+          challengesMap[prompt][model].count += 1;
+          challengesMap[prompt][model].score += Number(row.weighted_total) || 0;
+          challengesMap[prompt][model].correct += Number(row.correctness) || 0;
+          challengesMap[prompt][model].eff += Number(row.efficiency) || 0;
+        });
+
+        // 4. Format into our UI array structure
+        const formattedChallenges = Object.keys(challengesMap).map(prompt => {
+          const results = modelsArray.map(modelObj => {
+            const stats = challengesMap[prompt][modelObj.id];
+            if (!stats) return { score: null }; // Model hasn't attempted this challenge
+            
+            return {
+              score: Math.round(stats.score / stats.count),
+              correctness: Math.round(stats.correct / stats.count),
+              efficiency: Math.round(stats.eff / stats.count)
+            };
+          });
+
+          return { 
+            name: truncatePrompt(prompt), 
+            fullPrompt: prompt, 
+            results 
+          };
+        });
+
+        if (isMounted) {
+          setActiveModels(modelsArray);
+          // Grouping all dynamic DB prompts under one category header
+          setHeatmapData([{ category: 'Benchmarked Scenarios', challenges: formattedChallenges }]);
+        }
+
+      } catch (err) {
+        console.error("Error fetching heatmap data:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchHeatmapData();
+
+    return () => { isMounted = false; };
+  }, []);
+
   return (
     <div className="flex flex-col gap-4 w-full">
       
@@ -200,60 +210,82 @@ export default function HeatmapGrid() {
       <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5 overflow-hidden">
         <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] p-6 ring-1 ring-white/5 overflow-x-auto custom-scrollbar">
           
-          {/* CSS Grid Implementation */}
-          <div className="min-w-[700px] grid grid-cols-[240px_repeat(5,minmax(80px,1fr))] gap-x-2 gap-y-1">
-            
-            {/* Header Row: Models */}
-            <div className="col-start-2 col-span-5 grid grid-cols-5 gap-2 mb-4">
-              {MODELS.map((model, idx) => (
-                <div key={idx} className="text-center">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 truncate px-1" title={model}>
-                    {model}
-                  </div>
-                </div>
-              ))}
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-48 gap-3 text-zinc-500">
+              <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+              <span className="text-xs font-medium tracking-wide uppercase">Assembling Matrix Data...</span>
             </div>
-
-            {/* Matrix Body */}
-            {HEATMAP_DATA.map((categoryBlock, catIdx) => (
-              <React.Fragment key={catIdx}>
-                
-                {/* Category Divider */}
-                <div className="col-span-6 mt-4 mb-2 first:mt-0">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                      {categoryBlock.category}
-                    </span>
-                    <div className="h-px flex-1 bg-white/5" />
+          ) : heatmapData.length === 0 ? (
+            <div className="flex items-center justify-center h-48 text-zinc-500 text-xs font-medium tracking-wide uppercase">
+              No Challenge Data Available
+            </div>
+          ) : (
+            /* CSS Grid Implementation dynamically sized based on active models */
+            <div 
+              className="min-w-[700px] grid gap-x-2 gap-y-1"
+              style={{ gridTemplateColumns: `240px repeat(${activeModels.length}, minmax(80px, 1fr))` }}
+            >
+              
+              {/* Header Row: Models */}
+              <div 
+                className="col-start-2 grid gap-2 mb-4" 
+                style={{ gridTemplateColumns: `repeat(${activeModels.length}, 1fr)`, gridColumnEnd: `span ${activeModels.length}` }}
+              >
+                {activeModels.map((model, idx) => (
+                  <div key={idx} className="text-center">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 truncate px-1" title={model.label}>
+                      {model.label}
+                    </div>
                   </div>
-                </div>
-
-                {/* Challenge Rows */}
-                {categoryBlock.challenges.map((challenge, chalIdx) => (
-                  <React.Fragment key={`${catIdx}-${chalIdx}`}>
-                    {/* Challenge Title (Y-Axis) */}
-                    <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
-                      <span className="truncate" title={challenge.name}>
-                        {challenge.name}
-                      </span>
-                    </div>
-
-                    {/* Data Cells (X-Axis) */}
-                    <div className="col-span-5 grid grid-cols-5 gap-2">
-                      {challenge.results.map((result, resIdx) => (
-                        <HeatmapCell 
-                          key={resIdx} 
-                          data={result} 
-                          modelName={MODELS[resIdx]} 
-                        />
-                      ))}
-                    </div>
-                  </React.Fragment>
                 ))}
-              </React.Fragment>
-            ))}
+              </div>
 
-          </div>
+              {/* Matrix Body */}
+              {heatmapData.map((categoryBlock, catIdx) => (
+                <React.Fragment key={catIdx}>
+                  
+                  {/* Category Divider */}
+                  <div className="mt-4 mb-2 first:mt-0" style={{ gridColumn: `1 / -1` }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        {categoryBlock.category}
+                      </span>
+                      <div className="h-px flex-1 bg-white/5" />
+                    </div>
+                  </div>
+
+                  {/* Challenge Rows */}
+                  {categoryBlock.challenges.map((challenge, chalIdx) => (
+                    <React.Fragment key={`${catIdx}-${chalIdx}`}>
+                      
+                      {/* Challenge Title (Y-Axis) */}
+                      <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
+                        <span className="truncate cursor-help" title={challenge.fullPrompt}>
+                          {challenge.name}
+                        </span>
+                      </div>
+
+                      {/* Data Cells (X-Axis) */}
+                      <div 
+                        className="grid gap-2" 
+                        style={{ gridTemplateColumns: `repeat(${activeModels.length}, 1fr)`, gridColumnEnd: `span ${activeModels.length}` }}
+                      >
+                        {challenge.results.map((result, resIdx) => (
+                          <HeatmapCell 
+                            key={resIdx} 
+                            data={result} 
+                            modelName={activeModels[resIdx]?.label} 
+                          />
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              ))}
+
+            </div>
+          )}
+
         </div>
       </div>
     </div>

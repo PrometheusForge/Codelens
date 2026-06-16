@@ -3,6 +3,9 @@ import { Activity, Target } from 'lucide-react';
 import StatsRow from '../components/dashboard/StatsRow';
 import Leaderboard from '../components/dashboard/Leaderboard';
 import RadarChart from '../components/dashboard/RadarChart';
+// --- ADD THE TWO NEW IMPORTS HERE ---
+import TrendChart from '../components/dashboard/TrendChart';
+import HeatmapGrid from '../components/dashboard/HeatmapGrid';
 
 export default function Dashboard() {
   return (
@@ -35,9 +38,8 @@ export default function Dashboard() {
           {/* STEP 6.1: Placed perfectly as an isolated component */}
           <StatsRow />
 
-          {/* BENTO GRID: Leaderboard + Future Charts */}
+          {/* BENTO GRID ROW 1: Leaderboard + Radar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
             <div className="lg:col-span-8">
               {/* STEP 6.2: Placed perfectly as an isolated component */}
               <Leaderboard />
@@ -47,8 +49,20 @@ export default function Dashboard() {
             <aside className="lg:col-span-4 flex flex-col gap-8">
               <RadarChart />
             </aside>
-
           </div>
+
+          {/* BENTO GRID ROW 2: Trend Chart */}
+          {/* Stretches full width to give the timeline room to breathe */}
+          <div className="w-full">
+            <TrendChart />
+          </div>
+
+          {/* BENTO GRID ROW 3: Heatmap Grid */}
+          {/* Sits at the bottom as the granular data matrix */}
+          <div className="w-full">
+            <HeatmapGrid />
+          </div>
+
         </div>
 
       </div>

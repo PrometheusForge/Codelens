@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, Cpu, Layers, Target, 
   TrendingUp, TrendingDown, Crown, 
-  ChevronRight, TerminalSquare, Sparkles, Zap, Box
+  ChevronRight, TerminalSquare, Sparkles, Zap, Box, Loader2
 } from 'lucide-react';
+import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
+import { MODEL_REGISTRY } from '../../services/aiService'; // Adjust path if needed
 
-const LEADERBOARD_DATA = [
-  { id: 'gemini-flash', rank: 1, name: 'Gemini 1.5 Flash', provider: 'Google', providerIcon: Sparkles, total: 91.4, correctness: 98, efficiency: 88, readability: 92, evals: 342 },
-  { id: 'llama-70b', rank: 2, name: 'Llama 3 (70B)', provider: 'Groq', providerIcon: TerminalSquare, total: 89.1, correctness: 95, efficiency: 82, readability: 89, evals: 418 },
-  { id: 'gpt-4o', rank: 3, name: 'GPT-4o', provider: 'OpenAI', providerIcon: Box, total: 88.7, correctness: 96, efficiency: 85, readability: 85, evals: 215 },
-  { id: 'mistral-7b', rank: 4, name: 'Mistral Instruct', provider: 'OpenRouter', providerIcon: Zap, total: 72.3, correctness: 75, efficiency: 65, readability: 78, evals: 184 },
-  { id: 'gemma-9b', rank: 5, name: 'Gemma 2 (9B)', provider: 'Groq', providerIcon: Layers, total: 68.9, correctness: 70, efficiency: 60, readability: 75, evals: 156 },
-];
+// Helper to map providers to matching Lucide icons dynamically
+const getProviderIcon = (provider) => {
+  switch (provider?.toLowerCase()) {
+    case 'google': return Sparkles;
+    case 'groq': return TerminalSquare;
+    case 'openai': return Box;
+    case 'cohere': return Layers;
+    case 'mistral': return Zap;
+    case 'deepseek': return Cpu;
+    default: return Target;
+  }
+};
 
 const getRankStyles = (rank) => {
   if (rank === 1) return 'text-amber-400 bg-amber-400/10 ring-amber-400/30 shadow-[0_0_20px_rgba(251,191,36,0.1)]';
@@ -22,7 +29,7 @@ const getRankStyles = (rank) => {
 
 const LeaderboardRow = ({ model }) => {
   const rankStyles = getRankStyles(model.rank);
-  const ProviderIcon = model.providerIcon;
+  const ProviderIcon = model.providerIcon || Target;
 
   return (
     <tr className="group transition-colors hover:bg-white/[0.02] border-b border-white/5 last:border-0">
@@ -74,6 +81,83 @@ const LeaderboardRow = ({ model }) => {
 };
 
 export default function Leaderboard() {
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchLeaderboardData = async () => {
+      try {
+        setIsLoading(true);
+        // 1. Fetch relevant columns from Supabase
+        const { data, error } = await supabase
+          .from('evaluations')
+          .select('model_id, weighted_total, correctness, efficiency, readability');
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          if (isMounted) setLeaderboardData([]);
+          return;
+        }
+
+        // 2. Aggregate the data by model
+        const stats = {};
+        data.forEach(row => {
+          if (!row.model_id) return; // Skip any null rows safely
+          
+          if (!stats[row.model_id]) {
+            stats[row.model_id] = { count: 0, totalScore: 0, totalCorrect: 0, totalEff: 0, totalRead: 0 };
+          }
+          
+          stats[row.model_id].count += 1;
+          stats[row.model_id].totalScore += Number(row.weighted_total) || 0;
+          stats[row.model_id].totalCorrect += Number(row.correctness) || 0;
+          stats[row.model_id].totalEff += Number(row.efficiency) || 0;
+          stats[row.model_id].totalRead += Number(row.readability) || 0;
+        });
+
+        // 3. Format and calculate averages
+        const formattedData = Object.keys(stats).map(modelId => {
+          const modelStats = stats[modelId];
+          const registryInfo = MODEL_REGISTRY.find(m => m.id === modelId);
+
+          return {
+            id: modelId,
+            name: registryInfo ? registryInfo.label : modelId,
+            provider: registryInfo ? registryInfo.provider : 'Unknown',
+            providerIcon: getProviderIcon(registryInfo ? registryInfo.provider : 'Unknown'),
+            total: modelStats.totalScore / modelStats.count,
+            correctness: Math.round(modelStats.totalCorrect / modelStats.count),
+            efficiency: Math.round(modelStats.totalEff / modelStats.count),
+            readability: Math.round(modelStats.totalRead / modelStats.count),
+            evals: modelStats.count
+          };
+        });
+
+        // 4. Sort by highest total score first, then assign rank index
+        formattedData.sort((a, b) => b.total - a.total);
+        formattedData.forEach((model, index) => {
+          model.rank = index + 1;
+        });
+
+        if (isMounted) {
+          setLeaderboardData(formattedData);
+        }
+
+      } catch (err) {
+        console.error("Error fetching leaderboard data:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchLeaderboardData();
+
+    return () => { isMounted = false; };
+  }, []);
+
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2 ml-2">
@@ -81,28 +165,41 @@ export default function Leaderboard() {
       </h2>
       
       <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] ring-1 ring-white/5 overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/[0.01]">
-                <th className="py-4 pl-6 pr-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 w-16">Rank</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Model Architecture</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Avg Score</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Correct</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right hidden md:table-cell">Efficient</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right hidden lg:table-cell">Readable</th>
-                <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Evals</th>
-                <th className="py-4 pl-4 pr-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right w-16">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-transparent">
-              {LEADERBOARD_DATA.map((model) => (
-                <LeaderboardRow key={model.id} model={model} />
-              ))}
-            </tbody>
-          </table>
+        <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] ring-1 ring-white/5 overflow-x-auto min-h-[300px]">
+          
+          {isLoading ? (
+            <div className="h-[300px] flex flex-col items-center justify-center gap-3 text-zinc-500">
+              <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+              <span className="text-xs font-medium tracking-wide uppercase">Compiling Global Rankings...</span>
+            </div>
+          ) : leaderboardData.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center text-zinc-500 text-xs font-medium tracking-wide uppercase">
+              No Evaluation Data Available
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/[0.01]">
+                  <th className="py-4 pl-6 pr-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 w-16">Rank</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Model Architecture</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Avg Score</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Correct</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right hidden md:table-cell">Efficient</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right hidden lg:table-cell">Readable</th>
+                  <th className="py-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right">Evals</th>
+                  <th className="py-4 pl-4 pr-6 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 text-right w-16">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-transparent">
+                {leaderboardData.map((model) => (
+                  <LeaderboardRow key={model.id} model={model} />
+                ))}
+              </tbody>
+            </table>
+          )}
+          
         </div>
       </div>
     </section>
   );
-};
+}
