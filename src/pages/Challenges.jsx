@@ -11,16 +11,12 @@ import {
 import { challenges } from '../data/challenges.js';
 import { supabase } from '../services/supabaseClient';
 
-
-// --- ZUSTAND STORE ---
 const useAppStore = create((set) => ({
   viewMode: 'grid',
   setViewMode: (mode) => set({ viewMode: mode }),
 }));
 
 // --- MOCK DATA SEED (Enriched for Slide-Over) ---
-
-
 const CATEGORIES = [
   { id: 'algorithms', label: 'Algorithms', icon: Cpu },
   { id: 'data-structures', label: 'Data Structures', icon: Database },
@@ -41,7 +37,6 @@ const MOCK_PAST_RESULTS = [
   { id: 5, model: 'Claude 3.5 Sonnet', score: 98, time: '4 days ago', success: true },
 ];
 
-// --- UTILS ---
 const getDifficultyStyles = (diff) => {
   switch (diff) {
     case 'easy': return 'text-emerald-400 bg-emerald-400/10 ring-emerald-400/20';
@@ -58,15 +53,13 @@ const getCategoryIcon = (categoryId) => {
   return <Icon className="w-4 h-4" />;
 };
 
-// --- COMPONENTS ---
-
 const Badge = ({ children, className = '' }) => (
   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ring-1 ring-inset ${className}`}>
     {children}
   </span>
 );
 
-// --- SLIDE-OVER PANEL ---
+// Slide-Over Component
 const SlideOver = ({ challenge, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [showAllTests, setShowAllTests] = useState(false);
@@ -81,9 +74,8 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
       setIsLoadingResults(true);
       try {
         const { data, error } = await supabase
-          .from('evaluations') // Make sure this is your actual table name
+          .from('evaluations')
           .select('*')
-          // FIX: Use challenge_prompt from your schema instead of challenge_id
           .eq('challenge_prompt', challenge.prompt) 
           .order('created_at', { ascending: false }) 
           .limit(3); 
@@ -100,7 +92,6 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
     fetchPastResults();
   }, [challenge]);
 
-  // Keyboard shortcut to close
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -157,10 +148,7 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Scrollable Content Body */}
         <div className="flex-1 overflow-y-auto px-8 py-8 space-y-12">
-          
-          {/* Prompt Section */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2">
@@ -265,12 +253,10 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
                   ) : (
                     pastResults.slice(0, 5).map((res) => (
                       <tr key={res.id} className="transition-colors hover:bg-white/[0.02]">
-                        {/* FIX: Mapped to model_id */}
                         <td className="px-6 py-4 font-medium text-zinc-200 capitalize">
                           {res.model_id.replace(/-/g, ' ')}
                         </td>
                         <td className="px-6 py-4">
-                          {/* FIX: Mapped to weighted_total */}
                           <span className={`inline-flex items-center gap-1.5 ${res.weighted_total >= 80 ? 'text-emerald-400' : 'text-orange-400'}`}>
                             {res.weighted_total}%
                           </span>
@@ -293,13 +279,11 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
           <button 
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
-              
-              // THE FIX: Adding `challenge: challenge` to the state payload
+              e.stopPropagation();              
               navigate(`/evaluate/${challenge.id}`, { 
                 state: { 
                   challengePrompt: challenge.prompt,
-                  challenge: challenge // <-- This passes the testCases to the sandbox!
+                  challenge: challenge 
                 } 
               });
             }}
@@ -315,7 +299,7 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
   );
 };
 
-// --- CHALLENGE CARD ---
+// Challenge Card Component
 const ChallengeCard = ({ challenge, viewMode, onSelect }) => {
   const isList = viewMode === 'list';
 
@@ -324,10 +308,7 @@ const ChallengeCard = ({ challenge, viewMode, onSelect }) => {
       onClick={() => onSelect(challenge)}
       className="group relative cursor-pointer rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5 transition-all duration-500 hover:bg-white/[0.04]"
     >
-      {/* Inner Core (Double-Bezel Architecture) */}
       <div className={`relative h-full rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-6 ring-1 ring-white/5 transition-all duration-500 group-hover:ring-white/10 flex flex-col ${isList ? 'md:flex-row md:items-center md:gap-8' : 'gap-5'}`}>
-        
-        {/* Header Section */}
         <div className={`flex flex-col gap-3 ${isList ? 'md:w-1/3' : ''}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 text-zinc-400">
@@ -396,7 +377,7 @@ const ChallengeCard = ({ challenge, viewMode, onSelect }) => {
   );
 };
 
-// --- MAIN PAGE ---
+// Main Challenges Page
 export default function Challenges() {
   const { viewMode, setViewMode } = useAppStore();
   
@@ -410,16 +391,13 @@ export default function Challenges() {
   const [selectedDifficulties, setSelectedDifficulties] = useState([]);
   const [sortBy, setSortBy] = useState('newest');
 
-  // Handlers
   const handleOpenChallenge = (challenge) => {
     setActiveChallenge(challenge);
-    // Request animation frame to ensure DOM updates before triggering CSS transition
     requestAnimationFrame(() => setIsSlideOverOpen(true));
   };
 
   const handleCloseSlideOver = () => {
     setIsSlideOverOpen(false);
-    // Wait for slide-out transition to finish before destroying content
     setTimeout(() => setActiveChallenge(null), 500);
   };
 
@@ -439,9 +417,7 @@ export default function Challenges() {
 
   // Derived Data
   const filteredChallenges = useMemo(() => {
-    // ⬇️ UPDATE THIS LINE to use your imported data
     let result = challenges;
-
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter(c => 
@@ -481,9 +457,7 @@ export default function Challenges() {
         onClose={handleCloseSlideOver} 
       />
 
-      <div className="mx-auto max-w-[1400px] px-4 py-12 md:px-8 md:py-15">
-        
-        {/* Editorial Hero Header */}
+      <div className="mx-auto max-w-[1400px] px-4 py-12 md:px-8 md:py-15">        
         <header className="mb-12 flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
@@ -494,7 +468,7 @@ export default function Challenges() {
             </p>
           </div>
 
-          {/* View Toggle (Segmented Control) */}
+          {/* View Toggle */}
           <div className="flex items-center gap-1 rounded-full bg-white/[0.03] p-1.5 ring-1 ring-white/10">
             <button 
               onClick={() => setViewMode('grid')}
@@ -615,7 +589,6 @@ export default function Challenges() {
             </div>
 
             {filteredChallenges.length === 0 ? (
-              // Empty State
               <div className="flex flex-col items-center justify-center rounded-[2rem] bg-white/[0.01] px-6 py-24 ring-1 ring-white/5 border border-dashed border-white/10 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.03] ring-1 ring-white/10 mb-6">
                   <Search className="w-6 h-6 text-zinc-500" />

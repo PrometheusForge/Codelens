@@ -29,7 +29,6 @@ const DIMENSIONS = [
   { id: 'explanation', label: 'Explanation', desc: 'Did the model clearly explain its approach, constraints, and complexity analysis?' }
 ];
 
-// --- UTILS ---
 const getScoreColors = (score) => {
   if (score >= 80) return { text: 'text-emerald-400', bg: 'bg-emerald-400/10', fill: 'bg-emerald-500', ring: 'ring-emerald-400/20' };
   if (score >= 60) return { text: 'text-amber-400', bg: 'bg-amber-400/10', fill: 'bg-amber-500', ring: 'ring-amber-400/20' };
@@ -44,8 +43,6 @@ const getLetterGrade = (score) => {
   if (score >= 60) return 'D';
   return 'F';
 };
-
-// --- COMPONENTS ---
 
 // Custom Range Slider with Dynamic Fill
 const ScoreSlider = ({ dimension, value, onChange }) => {
@@ -69,12 +66,10 @@ const ScoreSlider = ({ dimension, value, onChange }) => {
       </div>
 
       <div className="relative h-3 w-full rounded-full bg-black/50 ring-1 ring-white/5 overflow-hidden">
-        {/* Fill */}
         <div 
           className={`absolute top-0 left-0 h-full ${colors.fill} transition-all duration-200 ease-out`}
           style={{ width: `${value}%` }}
         />
-        {/* Native Input overlaid for interaction */}
         <input 
           type="range" 
           min="0" max="100" 
@@ -87,12 +82,11 @@ const ScoreSlider = ({ dimension, value, onChange }) => {
   );
 };
 
-// --- MAIN PAGE ---
+//Main Panel Component
 export default function EvalPanel() {
   const [scores, setScores] = useState(MOCK_EVAL_DATA.initialScores);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle | loading | success
 
-  // Derived Values
   const totalScore = useMemo(() => {
     const vals = Object.values(scores);
     return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
@@ -101,14 +95,12 @@ export default function EvalPanel() {
   const totalColors = getScoreColors(totalScore);
   const letterGrade = getLetterGrade(totalScore);
 
-  // Handlers
   const handleScoreChange = (id, value) => {
     setScores(prev => ({ ...prev, [id]: value }));
   };
 
   const handleSave = async () => {
     setSaveStatus('loading');
-    // Simulate network latency & save to DB
     await new Promise(r => setTimeout(r, 1200));
     setSaveStatus('success');
     setTimeout(() => setSaveStatus('idle'), 3000);
@@ -116,9 +108,7 @@ export default function EvalPanel() {
 
   return (
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 p-4 md:p-8 lg:p-12">
-      <div className="mx-auto max-w-[1600px]">
-        
-        {/* Header */}
+      <div className="mx-auto max-w-[1600px]">        
         <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -144,7 +134,6 @@ export default function EvalPanel() {
           {/* LEFT COLUMN: AI Output & Code */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             
-            {/* Double-Bezel Container for Editor */}
             <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
               <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] ring-1 ring-white/5 overflow-hidden flex flex-col shadow-2xl">
                 
@@ -194,7 +183,7 @@ export default function EvalPanel() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Scoring Form */}
+          {/* Right Column - Scoring Form */}
           <div className="lg:col-span-5 flex flex-col gap-6 sticky top-8">
             
             {/* Live Grade Card */}
@@ -264,7 +253,6 @@ export default function EvalPanel() {
               </div>
             </div>
 
-            {/* Save Action */}
             <div className="pt-2">
               <button 
                 onClick={handleSave}

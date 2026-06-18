@@ -3,7 +3,7 @@ import {
   Activity, Cpu, Layers, Target, 
   TrendingUp, TrendingDown, Loader2
 } from 'lucide-react';
-import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
+import { supabase } from '../../services/supabaseClient';
 
 const StatCard = ({ stat, index }) => {
   const Icon = stat.icon;
@@ -57,7 +57,7 @@ export default function StatsRow() {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        // We added 'created_at' to the fetch so we can do time-travel math
+        // 'created_at' for time-travel math
         const { data, error } = await supabase
           .from('evaluations')
           .select('model_id, challenge_prompt, correctness, created_at');
@@ -78,7 +78,7 @@ export default function StatsRow() {
           return;
         }
 
-        // --- TIME TRAVEL MATH SETUP ---
+        // Time-travel math to calculate trends
         const now = new Date();
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
@@ -91,7 +91,7 @@ export default function StatsRow() {
         });
         const upToOneWeekAgoData = data.filter(d => new Date(d.created_at) < oneWeekAgo);
 
-        // --- 1. TOTAL EVALUATIONS ---
+        // Total Evaluations
         const totalEvals = data.length;
         let evalTrend = "NO CHANGE";
         let evalIsPositive = null;
@@ -105,7 +105,7 @@ export default function StatsRow() {
           evalIsPositive = percentChange > 0 ? true : percentChange < 0 ? false : null;
         }
 
-        // --- 2. MODELS BENCHMARKED ---
+        // Models Benchmarked
         const uniqueModelsAll = new Set(data.map(row => row.model_id).filter(Boolean)).size;
         const uniqueModelsBefore = new Set(upToOneWeekAgoData.map(row => row.model_id).filter(Boolean)).size;
         const newModelsThisWeek = uniqueModelsAll - uniqueModelsBefore;
@@ -117,7 +117,7 @@ export default function StatsRow() {
           modelIsPositive = true;
         }
 
-        // --- 3. ACTIVE CHALLENGES ---
+        // Active Challenges
         const uniqueChallengesAll = new Set(data.map(row => row.challenge_prompt).filter(Boolean)).size;
         const uniqueChallengesBefore = new Set(upToOneWeekAgoData.map(row => row.challenge_prompt).filter(Boolean)).size;
         const newChallengesThisWeek = uniqueChallengesAll - uniqueChallengesBefore;
@@ -129,7 +129,7 @@ export default function StatsRow() {
           challengeIsPositive = true;
         }
 
-        // --- 4. GLOBAL CORRECTNESS ---
+        //Global Correctness
         const getAvg = (arr) => arr.length ? arr.reduce((sum, d) => sum + (Number(d.correctness) || 0), 0) / arr.length : 0;
         const avgAll = getAvg(data);
         const avgCurrentWeek = getAvg(currentWeekData);
@@ -147,7 +147,7 @@ export default function StatsRow() {
           corrIsPositive = diff > 0 ? true : diff < 0 ? false : null;
         }
 
-        // --- UPDATE STATE ---
+        // Update state if component is still mounted
         if (isMounted) {
           setStatsData([
             { id: 'evals', label: 'Total Evaluations', value: totalEvals.toLocaleString(), trend: evalTrend, isPositive: evalIsPositive, icon: Activity },

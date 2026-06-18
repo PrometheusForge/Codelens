@@ -3,8 +3,8 @@ import {
   FileText, Download, Copy, Printer, ChevronLeft, 
   ChevronDown, ChevronUp, Calendar, Check, Code2, Loader2
 } from 'lucide-react';
-import { supabase } from '../services/supabaseClient'; // Adjust path if needed
-import { MODEL_REGISTRY } from '../services/aiService'; // Adjust path if needed
+import { supabase } from '../services/supabaseClient';
+import { MODEL_REGISTRY } from '../services/aiService';
 
 const Badge = ({ children, className = '' }) => (
   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ring-1 ring-inset ${className}`}>
@@ -40,7 +40,6 @@ const CodeAccordion = ({ snippet }) => {
   );
 };
 
-// Generates a short title for long prompts
 const truncatePrompt = (prompt) => {
   if (!prompt) return 'Unknown Challenge';
   const words = prompt.split(' ');
@@ -73,42 +72,37 @@ export default function Reports() {
           return;
         }
 
-        // Group rows by the exact challenge prompt to create "Sessions"
         const groupedSessions = {};
 
         data.forEach(row => {
           const prompt = row.challenge_prompt;
           if (!prompt) return;
 
-          // Map model ID to friendly label
           const registryEntry = MODEL_REGISTRY.find(m => m.id === row.model_id);
           const modelName = registryEntry ? registryEntry.label : row.model_id;
 
           if (!groupedSessions[prompt]) {
             groupedSessions[prompt] = {
-              id: `sess_${row.id}`, // Use the first encountered row ID as the session anchor
+              id: `sess_${row.id}`,
               challengeTitle: truncatePrompt(prompt),
               fullPrompt: prompt,
-              date: row.created_at, // Takes the most recent timestamp for this group
+              date: row.created_at,
               models: [],
               analystNotes: '',
               codeSnippets: []
             };
           }
 
-          // Add the model performance to this session
           groupedSessions[prompt].models.push({
             name: modelName,
             score: row.weighted_total || 0,
-            time: 'Evaluated' // Defaulting since ms time isn't stored in this table schema
+            time: 'Evaluated' 
           });
 
-          // Append the Universal Judge's feedback to the analyst notes
           if (row.notes) {
             groupedSessions[prompt].analystNotes += `\n\n### [${modelName}]\n${row.notes}`;
           }
 
-          // If you ever start saving raw code in `test_results.code`, it will inject here
           if (row.test_results && row.test_results.code) {
              groupedSessions[prompt].codeSnippets.push({
                model: modelName,
@@ -118,13 +112,11 @@ export default function Reports() {
           }
         });
 
-        // Convert the grouped object back into an array
         const formattedReports = Object.values(groupedSessions);
 
         if (isMounted) {
           setReportsData(formattedReports);
           
-          // Pre-populate any existing conclusions state
           const initialConclusions = {};
           formattedReports.forEach(r => initialConclusions[r.id] = '');
           setConclusions(initialConclusions);
@@ -142,7 +134,6 @@ export default function Reports() {
     return () => { isMounted = false; };
   }, []);
 
-  // --- ACTIONS ---
   const handlePrint = () => {
     window.print();
   };
@@ -201,7 +192,6 @@ export default function Reports() {
       <div className="bg-[#09090b] text-zinc-100 print:bg-white print:text-black py-12 md:py-24">
         <div className="mx-auto max-w-[1000px] px-4 md:px-8">
           
-          {/* Action Bar (Hidden when printing) */}
           <div className="mb-10 flex flex-wrap items-center justify-between gap-4 print:hidden">
             <button 
               onClick={() => setSelectedSession(null)}
@@ -232,7 +222,6 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Document Header */}
           <header className="mb-12 pb-8 border-b border-white/10 print:border-zinc-300">
             <div className="flex items-center gap-3 mb-4 text-zinc-500 print:text-zinc-600">
               <FileText className="w-5 h-5" />
@@ -247,10 +236,8 @@ export default function Reports() {
             </div>
           </header>
 
-          {/* Document Content */}
           <div className="space-y-12">
             
-            {/* Original Prompt */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
                 Original Challenge Prompt
@@ -260,7 +247,6 @@ export default function Reports() {
               </div>
             </section>
 
-            {/* Performance Table */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-6 print:text-zinc-800">
                 Model Performance
@@ -287,7 +273,6 @@ export default function Reports() {
               </div>
             </section>
 
-            {/* Analyst Notes / AI Judge Feedback */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
                 AI Judge Feedback Logs
@@ -312,7 +297,6 @@ export default function Reports() {
               </div>
             </section>
 
-            {/* Code Extractions */}
             {selectedSession.codeSnippets && selectedSession.codeSnippets.length > 0 && (
               <section className="print:break-before-page">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-6 print:text-zinc-800">

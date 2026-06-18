@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutGrid, Target, Zap, Loader2 } from 'lucide-react';
-import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
-import { MODEL_REGISTRY } from '../../services/aiService'; // Adjust path if needed
-
-// --- UTILS & MICRO-COMPONENTS ---
+import { supabase } from '../../services/supabaseClient';
+import { MODEL_REGISTRY } from '../../services/aiService';
 
 const getCellStyles = (score) => {
   if (score === null || score === undefined) {
@@ -15,7 +13,7 @@ const getCellStyles = (score) => {
   return 'bg-rose-500/80 border border-rose-400/20 text-rose-50';
 };
 
-// Generates a short title for long prompts
+// Generates short title for long prompts
 const truncatePrompt = (prompt) => {
   if (!prompt) return 'Unknown Challenge';
   const words = prompt.split(' ');
@@ -24,16 +22,13 @@ const truncatePrompt = (prompt) => {
 };
 
 const HeatmapCell = ({ data, modelName }) => {
-  // 1. Introduce React State to track hover
   const [isHovered, setIsHovered] = useState(false);
-  
   const { score, correctness, efficiency } = data || {};
   const isEvaluated = score !== null && score !== undefined;
   
   return (
     <div 
       className="relative cursor-pointer w-full h-10 rounded-md transition-all duration-300"
-      // 2. Dynamically force the z-index and scale to override the Grid stacking context
       style={{ 
         zIndex: isHovered ? 50 : 1,
         transform: isHovered ? 'scale(1.05)' : 'scale(1)'
@@ -41,17 +36,11 @@ const HeatmapCell = ({ data, modelName }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      
-      {/* Visual Cell */}
       <div className={`w-full h-full rounded-md flex items-center justify-center font-mono text-xs font-bold transition-colors ${getCellStyles(score)}`}>
         {isEvaluated ? score : '—'}
       </div>
 
-      {/* Hover Tooltip (Double-Bezel Architecture) */}
-      <div 
-        // 3. Swap Tailwind 'group-hover' for a state-driven template literal. 
-        // Added 'visible/invisible' to prevent hidden elements from eating mouse clicks.
-        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isHovered ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
         }`}
       >
@@ -99,8 +88,6 @@ const HeatmapCell = ({ data, modelName }) => {
   );
 };
 
-// --- MAIN COMPONENT ---
-
 export default function HeatmapGrid() {
   const [heatmapData, setHeatmapData] = useState([]);
   const [activeModels, setActiveModels] = useState([]);
@@ -115,7 +102,6 @@ export default function HeatmapGrid() {
       try {
         setIsLoading(true);
         
-        // 1. Fetch raw data
         const { data, error } = await supabase
           .from('evaluations')
           .select('model_id, challenge_prompt, weighted_total, correctness, efficiency')
@@ -128,14 +114,12 @@ export default function HeatmapGrid() {
           return;
         }
 
-        // 2. Identify all unique models tested to create the columns
         const modelIdsSet = new Set(data.map(r => r.model_id).filter(Boolean));
         const modelsArray = Array.from(modelIdsSet).map(id => {
           const reg = MODEL_REGISTRY.find(m => m.id === id);
           return { id, label: reg ? reg.label : id };
         });
 
-        // 3. Group evaluations by Challenge Prompt
         const challengesMap = {};
         data.forEach(row => {
           const prompt = row.challenge_prompt;
@@ -147,7 +131,7 @@ export default function HeatmapGrid() {
             challengesMap[prompt] = {};
           }
           
-          // If a model attempted the same prompt multiple times, average it
+          // Average score for multiple evaluations of the same model on the same prompt
           if (!challengesMap[prompt][model]) {
             challengesMap[prompt][model] = { count: 0, score: 0, correct: 0, eff: 0 };
           }
@@ -158,7 +142,6 @@ export default function HeatmapGrid() {
           challengesMap[prompt][model].eff += Number(row.efficiency) || 0;
         });
 
-        // 4. Format into our UI array structure
         const formattedChallenges = Object.keys(challengesMap).map(prompt => {
           const results = modelsArray.map(modelObj => {
             const stats = challengesMap[prompt][modelObj.id];
@@ -180,7 +163,6 @@ export default function HeatmapGrid() {
 
         if (isMounted) {
           setActiveModels(modelsArray);
-          // Grouping all dynamic DB prompts under one category header
           setHeatmapData([{ category: 'Benchmarked Scenarios', challenges: formattedChallenges }]);
         }
 
@@ -197,9 +179,7 @@ export default function HeatmapGrid() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      
-      {/* Section Header & Legend */}
+    <div className="flex flex-col gap-4 w-full">     
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 ml-2">
         <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
           <LayoutGrid className="w-3.5 h-3.5" /> Evaluation Matrix
@@ -226,9 +206,7 @@ export default function HeatmapGrid() {
         </div>
       </div>
 
-      {/* Double Bezel Container */}
       <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
-        {/* FIX: Changed pt-32 to pt-6 to remove the massive gap */}
         <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] px-6 pb-6 pt-6 ring-1 ring-white/5 overflow-x-auto custom-scrollbar">
                 
           {isLoading ? (
@@ -262,7 +240,7 @@ export default function HeatmapGrid() {
 
               {/* Matrix Body */}
               {heatmapData.map((categoryBlock, catIdx) => {
-                // NEW: Logic to slice the array to 10 items if not showing all
+                // slice array to 10 items
                 const visibleChallenges = isShowingAll 
                   ? categoryBlock.challenges 
                   : categoryBlock.challenges.slice(0, INITIAL_RECORD_LIMIT);
@@ -282,18 +260,15 @@ export default function HeatmapGrid() {
                       </div>
                     </div>
 
-                    {/* Challenge Rows (Now using visibleChallenges) */}
+                    {/* Challenge Rows*/}
                     {visibleChallenges.map((challenge, chalIdx) => (
                       <React.Fragment key={`${catIdx}-${chalIdx}`}>
-                        
-                        {/* Challenge Title (Y-Axis) */}
                         <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
                           <span className="truncate" title={challenge.fullPrompt}>
                             {challenge.name}
                           </span>
                         </div>
-
-                        {/* Data Cells (X-Axis) */}
+                        {/* Data Cells*/}
                         <div 
                           className="grid gap-2" 
                           style={{ gridTemplateColumns: `repeat(${activeModels.length}, 1fr)`, gridColumnEnd: `span ${activeModels.length}` }}
@@ -309,7 +284,7 @@ export default function HeatmapGrid() {
                       </React.Fragment>
                     ))}
 
-                    {/* NEW: Show More Button */}
+                    {/* Show More Button */}
                     {hasHiddenRecords && !isShowingAll && (
                       <div className="mt-8 mb-2 flex justify-center" style={{ gridColumn: `1 / -1` }}>
                         <button 
@@ -319,8 +294,7 @@ export default function HeatmapGrid() {
                           Show {categoryBlock.challenges.length - INITIAL_RECORD_LIMIT} More Records
                         </button>
                       </div>
-                    )}
-                    
+                    )} 
                   </React.Fragment>
                 );
               })}

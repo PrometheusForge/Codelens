@@ -1,30 +1,49 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, TerminalSquare, Swords, Activity, ShieldAlert} from 'lucide-react';
+import { ArrowRight, TerminalSquare, Swords, Activity, ShieldAlert} from 'lucide-react';
 
-// --- ACETERNITY-STYLE BACKGROUND EFFECT ---
-const AuroraBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 bg-[#030305]">
-    {/* Grid Substrate with Radial Fade */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
-    
-    {/* Floating Light Beams */}
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 0.15, scale: 1 }}
-      transition={{ duration: 2, ease: "easeOut" }}
-      className="absolute top-[-10%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-emerald-500/20 blur-[120px] mix-blend-screen"
-    />
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 0.1, scale: 1 }}
-      transition={{ duration: 2.5, ease: "easeOut", delay: 0.2 }}
-      className="absolute top-[10%] right-[10%] w-[40vw] h-[40vw] rounded-full bg-violet-600/20 blur-[100px] mix-blend-screen"
-    />
-  </div>
-);
+const AuroraBackground = () => {
+  const particles = useMemo(() => 
+    Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}vw`,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 15 + 10,
+      delay: Math.random() * 0.5,
+      sway: (Math.random() - 0.5) * 10 
+    }))
+  , []);
 
-// --- ACETERNITY-STYLE GLOWING BENTO CARD ---
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">      
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-white/70 shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: p.left,
+            top: '-5%',
+          }}
+          animate={{
+            y: ['0vh', '110vh'],
+            x: ['0vw', `${p.sway}vw`],
+            opacity: [0, 1, 1, 0]
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: "linear",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const GlowingCard = ({ children, className = "", delay = 0 }) => (
   <motion.div
     initial={{ opacity: 0, y: 40 }}
@@ -34,12 +53,8 @@ const GlowingCard = ({ children, className = "", delay = 0 }) => (
     whileHover={{ y: -5 }}
     className={`group relative rounded-3xl bg-[#09090b] ring-1 ring-white/10 p-8 overflow-hidden ${className}`}
   >
-    {/* Hover Gradient that follows the top edge */}
-    <div className="absolute inset-x-0 -top-px h-px w-full bg-gradient-to-r from-transparent via-emerald-500/0 to-transparent group-hover:via-emerald-500/50 transition-all duration-700" />
-    
-    {/* Soft inner glow on hover */}
+    <div className="absolute inset-x-0 -top-px h-px w-full bg-gradient-to-r from-transparent via-emerald-500/0 to-transparent group-hover:via-emerald-500/50 transition-all duration-700" />    
     <div className="absolute -inset-4 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-    
     <div className="relative z-10 h-full flex flex-col">
       {children}
     </div>
@@ -51,8 +66,6 @@ export default function Home() {
     <div className="relative min-h-screen w-full text-zinc-100 font-['Outfit'] selection:bg-emerald-500/30">
       
       <AuroraBackground />
-
-      {/* TOP NAVIGATION */}
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -74,21 +87,7 @@ export default function Home() {
 
       <main className="relative z-10 mx-auto max-w-7xl px-6 pt-40 pb-32">
         
-        {/* HERO SECTION */}
         <section className="flex flex-col items-center text-center mb-32">
-          
-          {/*<motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 inline-flex items-center gap-2 rounded-full bg-[#0c0c0e] px-4 py-1.5 ring-1 ring-white/10 shadow-xl"
-          >
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-['JetBrains_Mono'] uppercase tracking-widest text-zinc-400">
-              Aegis Engine Now Live
-            </span>
-          </motion.div>*/}
-
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -128,10 +127,8 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* BENTO GRID (The Refero / Aceternity standard layout) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[380px]">
           
-          {/* Main Feature: Arena */}
           <GlowingCard className="md:col-span-8" delay={0.1}>
             <div className="flex flex-col h-full justify-between">
               <div>
@@ -142,7 +139,6 @@ export default function Home() {
                 </p>
               </div>
               
-              {/* Abstract Terminal UI inside the card */}
               <div className="h-32 w-full rounded-xl bg-black/50 ring-1 ring-white/10 p-4 font-['JetBrains_Mono'] text-xs text-zinc-500 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
                 <p><span className="text-emerald-500">➜</span>  model_id: "llama-3-70b"</p>
@@ -152,7 +148,6 @@ export default function Home() {
             </div>
           </GlowingCard>
 
-          {/* Secondary Feature: Judge */}
           <GlowingCard className="md:col-span-4" delay={0.2}>
             <ShieldAlert className="h-6 w-6 text-violet-400 mb-4" />
             <h2 className="text-2xl font-bold mb-2">The Aegis Judge</h2>
@@ -164,14 +159,13 @@ export default function Home() {
             </div>
           </GlowingCard>
 
-          {/* Feature 3: Radar Chart Mock */}
           <GlowingCard className="md:col-span-4" delay={0.3}>
             <Activity className="h-6 w-6 text-amber-400 mb-4" />
             <h2 className="text-2xl font-bold mb-2">Live Radar</h2>
             <p className="text-zinc-400 text-sm">
               Dimensional telemetry charts mapping efficiency vs readability.
             </p>
-            {/* Visual representation of radar points */}
+
             <div className="absolute bottom-8 right-8 w-32 h-32 opacity-20 pointer-events-none">
               <svg viewBox="0 0 100 100" className="w-full h-full stroke-emerald-500 fill-emerald-500/20" strokeWidth="2">
                 <polygon points="50,5 95,40 75,95 25,95 5,40" />
@@ -179,7 +173,6 @@ export default function Home() {
             </div>
           </GlowingCard>
 
-          {/* Feature 4: The Database */}
           <GlowingCard className="md:col-span-8" delay={0.4}>
              <div className="flex flex-col h-full justify-center pl-4 md:pl-8 border-l border-white/10">
                <h2 className="text-3xl font-bold mb-4">Permanent Evaluation Matrices.</h2>

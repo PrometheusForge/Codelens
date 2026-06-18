@@ -8,7 +8,7 @@ import { Activity, Loader2 } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient'; 
 import { MODEL_REGISTRY } from '../../services/aiService'; 
 
-// --- PREMIUM TOOLTIP COMPONENT ---
+// Tooltip component for radar chart
 const PremiumTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -38,7 +38,7 @@ const PremiumTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// --- PREMIUM LEGEND COMPONENT ---
+// Legend component for radar chart
 const PremiumLegend = ({ payload }) => {
   if (!payload) return null;
   return (
@@ -60,7 +60,7 @@ const PremiumLegend = ({ payload }) => {
   );
 };
 
-// --- MAIN RADAR CHART COMPONENT ---
+// Main RadarChart component
 export default function RadarChartComponent() {
   const [chartData, setChartData] = useState([]);
   const [activeModels, setActiveModels] = useState([]);

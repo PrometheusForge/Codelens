@@ -6,7 +6,6 @@ import {
   ChevronDown, ArrowRight, CheckCircle2
 } from 'lucide-react';
 
-// --- CONSTANTS ---
 const CATEGORIES = [
   { id: 'algorithms', label: 'Algorithms', icon: TerminalSquare },
   { id: 'data-structures', label: 'Data Structures', icon: Database },
@@ -18,23 +17,17 @@ const CATEGORIES = [
 const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'];
 const LANGUAGES = ['javascript', 'python', 'both'];
 
-// --- UTILS ---
 const generateId = () => Math.random().toString(36).substr(2, 9);
 const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
 const isSupabaseConfigured = () => {
-  // Use try/catch for safe environment variable access
-  // When running locally in Vite or Next, this resolves gracefully.
   try {
-    // eslint-disable-next-line no-undef
     const url = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SUPABASE_URL : process?.env?.VITE_SUPABASE_URL;
     return !!url && url !== 'YOUR_SUPABASE_URL';
   } catch {
     return false;
   }
 };
-
-// --- COMPONENTS ---
 
 const Label = ({ children, htmlFor }) => (
   <label htmlFor={htmlFor} className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-2">
@@ -69,7 +62,6 @@ const Select = ({ options, value, onChange, icon: Icon }) => (
 
 // --- MAIN FORM ---
 export default function ChallengeForm() {
-  // Form State
   const [formData, setFormData] = useState({
     title: '',
     category: 'algorithms',
@@ -84,11 +76,9 @@ export default function ChallengeForm() {
     { id: generateId(), input: '', expectedOutput: '', points: 50 },
   ]);
 
-  // UI State
-  const [activeTab, setActiveTab] = useState('write'); // 'write' | 'preview'
+  const [activeTab, setActiveTab] = useState('write');
   const [status, setStatus] = useState({ type: 'idle', message: '' });
 
-  // Handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -109,8 +99,6 @@ export default function ChallengeForm() {
   const handleSave = async (e) => {
     e.preventDefault();
     setStatus({ type: 'loading', message: 'Validating...' });
-
-    // 1. Validation
     if (!formData.title.trim()) {
       return setStatus({ type: 'error', message: 'Challenge title is required.' });
     }
@@ -122,37 +110,30 @@ export default function ChallengeForm() {
       return setStatus({ type: 'error', message: 'All test cases must have both input and expected output.' });
     }
 
-    // 2. Construct Payload
     const newChallenge = {
       ...formData,
       id: slugify(formData.title),
       testCases,
-      tags: [], // Tags omitted for brevity, can be added later
-      examples: [], // Could be parsed from prompt or added as separate fields
+      tags: [],
+      examples: [],
       constraints: [],
       createdAt: new Date().toISOString()
     };
 
     setStatus({ type: 'loading', message: 'Saving protocol...' });
 
-    // 3. Save Logic (Supabase fallback to LocalStorage)
     try {
-      if (isSupabaseConfigured()) {
-        // Pseudo-code for actual Supabase insert:
-        // const { error } = await supabase.from('challenges').insert(newChallenge);
-        // if (error) throw error;
-        
+      if (isSupabaseConfigured()) {       
         // Simulating network delay
         await new Promise(r => setTimeout(r, 800));
       } else {
-        // LocalStorage Fallback (Zero-Budget mode)
+        // LocalStorage Fallback
         const existing = JSON.parse(localStorage.getItem('codelens_custom_challenges') || '[]');
         localStorage.setItem('codelens_custom_challenges', JSON.stringify([...existing, newChallenge]));
         await new Promise(r => setTimeout(r, 400));
       }
       
       setStatus({ type: 'success', message: 'Challenge successfully added to the library.' });
-      
       // Reset form after success
       setTimeout(() => {
         setFormData({ ...formData, title: '', prompt: '' });
@@ -172,7 +153,6 @@ export default function ChallengeForm() {
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 py-12 md:py-24">
       <div className="mx-auto max-w-4xl px-4 md:px-8">
         
-        {/* Header */}
         <header className="mb-12">
           <h1 className="text-3xl font-semibold tracking-tighter text-white md:text-4xl">
             Protocol Architect
@@ -184,7 +164,7 @@ export default function ChallengeForm() {
 
         <form onSubmit={handleSave} className="space-y-12">
           
-          {/* SECTION 1: METADATA */}
+          {/* Metadata Section */}
           <section className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
             <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-8 ring-1 ring-white/5">
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2 mb-8">
@@ -247,7 +227,7 @@ export default function ChallengeForm() {
             </div>
           </section>
 
-          {/* SECTION 2: PROMPT EDITOR */}
+          {/* Prompt Editor Section */}
           <section className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
             <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 ring-1 ring-white/5 overflow-hidden flex flex-col h-[500px]">
               
@@ -297,7 +277,7 @@ export default function ChallengeForm() {
             </div>
           </section>
 
-          {/* SECTION 3: TEST CASES */}
+          {/* Test Cases Section */}
           <section className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
             <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-8 ring-1 ring-white/5">
               <div className="flex items-center justify-between mb-8">
@@ -373,7 +353,7 @@ export default function ChallengeForm() {
             </div>
           </section>
 
-          {/* STATUS NOTIFICATION */}
+          {/* Status Notification */}
           {status.message && (
             <div className={`flex items-center gap-3 p-4 rounded-xl text-sm font-medium transition-all ${
               status.type === 'error' ? 'bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20' :
@@ -387,7 +367,7 @@ export default function ChallengeForm() {
             </div>
           )}
 
-          {/* FOOTER CTA */}
+          {/* Footer CTA */}
           <div className="pt-4 flex justify-end">
             <button 
               type="submit"

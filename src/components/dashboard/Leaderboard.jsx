@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   Cpu, Layers, Target, Crown, ChevronRight, TerminalSquare, Sparkles, Zap, Box, Loader2
 } from 'lucide-react';
-import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
-import { MODEL_REGISTRY } from '../../services/aiService'; // Adjust path if needed
+import { supabase } from '../../services/supabaseClient';
+import { MODEL_REGISTRY } from '../../services/aiService';
 
-// Helper to map providers to matching Lucide icons dynamically
 const getProviderIcon = (provider) => {
   switch (provider?.toLowerCase()) {
     case 'google': return Sparkles;
@@ -55,8 +54,6 @@ const LeaderboardRow = ({ model }) => {
           {model.total.toFixed(1)}
         </span>
       </td>
-
-      {/* Dimensions (Monospace for perfect alignment) */}
       <td className="py-4 px-4 text-right font-mono text-sm text-zinc-400">{model.correctness}</td>
       <td className="py-4 px-4 text-right font-mono text-sm text-zinc-400 hidden md:table-cell">{model.efficiency}</td>
       <td className="py-4 px-4 text-right font-mono text-sm text-zinc-400 hidden lg:table-cell">{model.readability}</td>
@@ -88,7 +85,6 @@ export default function Leaderboard() {
     const fetchLeaderboardData = async () => {
       try {
         setIsLoading(true);
-        // 1. Fetch relevant columns from Supabase
         const { data, error } = await supabase
           .from('evaluations')
           .select('model_id, weighted_total, correctness, efficiency, readability');
@@ -100,11 +96,10 @@ export default function Leaderboard() {
           return;
         }
 
-        // 2. Aggregate the data by model
         const stats = {};
         data.forEach(row => {
-          if (!row.model_id) return; // Skip any null rows safely
-          
+          if (!row.model_id) return;
+      
           if (!stats[row.model_id]) {
             stats[row.model_id] = { count: 0, totalScore: 0, totalCorrect: 0, totalEff: 0, totalRead: 0 };
           }
@@ -116,7 +111,6 @@ export default function Leaderboard() {
           stats[row.model_id].totalRead += Number(row.readability) || 0;
         });
 
-        // 3. Format and calculate averages
         const formattedData = Object.keys(stats).map(modelId => {
           const modelStats = stats[modelId];
           const registryInfo = MODEL_REGISTRY.find(m => m.id === modelId);
@@ -134,7 +128,7 @@ export default function Leaderboard() {
           };
         });
 
-        // 4. Sort by highest total score first, then assign rank index
+        // Sort by highest total score then assign rank index
         formattedData.sort((a, b) => b.total - a.total);
         formattedData.forEach((model, index) => {
           model.rank = index + 1;

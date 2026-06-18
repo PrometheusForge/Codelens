@@ -7,7 +7,6 @@ import { TrendingUp, Loader2 } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient'; 
 import { MODEL_REGISTRY } from '../../services/aiService'; 
 
-// Constants stay outside
 const TIME_FRAME_OPTIONS = [
   { label: '2H', value: '2h' },
   { label: '4H', value: '4h' },
@@ -15,8 +14,6 @@ const TIME_FRAME_OPTIONS = [
   { label: '12H', value: '12h' },
   { label: 'Daily', value: 'daily' },
 ];
-
-// --- CUSTOM COMPONENTS ---
 
 const PremiumTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -62,9 +59,7 @@ const PremiumLegend = ({ payload }) => {
   );
 };
 
-// --- MAIN COMPONENT ---
 export default function TrendChart() {
-  // FIX: State hooks MUST be inside the component function
   const [chartData, setChartData] = useState([]);
   const [activeModels, setActiveModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +68,6 @@ export default function TrendChart() {
   useEffect(() => {
     let isMounted = true;
 
-    // FIX: Restored the function that fetches and processes the database records
     const fetchAndProcessData = async () => {
       try {
         setIsLoading(true);
@@ -89,7 +83,6 @@ export default function TrendChart() {
           return;
         }
 
-        // Apply the dynamic time frame grouping
         const groupedByDate = {};
 
         data.forEach(row => {
@@ -120,7 +113,6 @@ export default function TrendChart() {
           groupedByDate[dateLabel][modelLabel].count += 1;
         });
 
-        // Calculate averages for the grouped buckets
         const formattedData = Object.keys(groupedByDate).map(dateKey => {
           const dayData = { date: dateKey };
           Object.keys(groupedByDate[dateKey]).forEach(key => {
@@ -150,16 +142,14 @@ export default function TrendChart() {
     fetchAndProcessData();
 
     return () => { isMounted = false; };
-  }, [timeFrame]); // Chart redraws when timeFrame changes
+  }, [timeFrame]); // Chart redraw when timeFrame changes
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      {/* Header with Selector */}
       <div className="flex items-center justify-between ml-2">
         <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
           <TrendingUp className="h-3.5 w-3.5" /> Longitudinal Trajectory
         </h2>
-        
         <select 
           className="bg-zinc-900 text-[10px] uppercase tracking-widest text-zinc-400 border border-white/10 rounded px-2 py-1 cursor-pointer outline-none hover:text-white transition-colors"
           value={timeFrame}
@@ -171,7 +161,6 @@ export default function TrendChart() {
         </select>
       </div>
       
-      {/* Outer Shell */}
       <div className="flex-1 rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
         
         <div className="relative flex h-full min-h-[400px] w-full flex-col items-center justify-center rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] p-6 ring-1 ring-white/5">
@@ -191,7 +180,7 @@ export default function TrendChart() {
                 
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                 
-                {/* Dynamically adjust X-axis text rotation for tighter timeframes */}
+                {/* adjust text for tighter timeframes */}
                 <XAxis 
                   dataKey="date" 
                   tick={{ fill: '#a1a1aa', fontSize: 10, fontWeight: 600, fontFamily: 'monospace' }}

@@ -4,7 +4,6 @@ const isSupabaseConfigured = () =>
 
 export const saveEvaluationSafe = async (data) => {
   if (!isSupabaseConfigured()) {
-    // LocalStorage fallback
     const existing = JSON.parse(localStorage.getItem('codelens_evaluations') || '[]');
     existing.push({ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() });
     localStorage.setItem('codelens_evaluations', JSON.stringify(existing));
@@ -15,9 +14,7 @@ export const saveEvaluationSafe = async (data) => {
 
 import { supabase } from './supabaseClient'
 
-// Save a complete evaluation session (response + scores)
 export const saveEvaluation = async ({ challengeId, modelResult, scores, testResults }) => {
-  // 1. Save AI response
   const { data: response, error: responseError } = await supabase
     .from('ai_responses')
     .insert({
@@ -36,7 +33,6 @@ export const saveEvaluation = async ({ challengeId, modelResult, scores, testRes
   
   if (responseError) throw responseError;
   
-  // 2. Save evaluation scores
   const { error: evalError } = await supabase
     .from('evaluations')
     .insert({
@@ -52,14 +48,12 @@ export const saveEvaluation = async ({ challengeId, modelResult, scores, testRes
   return response.id;
 };
 
-// Fetch leaderboard data
 export const getLeaderboard = async () => {
   const { data, error } = await supabase.from('model_performance').select('*');
   if (error) throw error;
   return data;
 };
 
-// Fetch all evaluations for a specific challenge
 export const getChallengeHistory = async (challengeId, limit = 20) => {
   const { data, error } = await supabase
     .from('ai_responses')

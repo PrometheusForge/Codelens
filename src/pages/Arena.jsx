@@ -4,9 +4,8 @@ import { MODEL_REGISTRY, queryAllModels, evaluateCodeSubmission } from '../servi
 import { extractCode } from '../utils/codeExtractor';
 import { supabase } from '../services/supabaseClient';
 
-// --- NEW SUB-COMPONENT: Manages the tabs for each result ---
 const ArenaResultCard = ({ result, isWinner }) => {
-  const [activeTab, setActiveTab] = useState('feedback'); // 'feedback' or 'code'
+  const [activeTab, setActiveTab] = useState('feedback');
 
   return (
     <div className="relative bg-white/[0.02] border border-white/10 rounded-2xl p-6 overflow-hidden">
@@ -35,7 +34,7 @@ const ArenaResultCard = ({ result, isWinner }) => {
             <span className="text-xs px-2 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/10">{result.provider}</span>
           </div>
           
-          {/* TABS CONTROLS */}
+          {/* Tab Controls */}
           <div className="flex items-center gap-2 border-b border-white/5 pb-2">
             <button
               onClick={() => setActiveTab('feedback')}
@@ -55,7 +54,7 @@ const ArenaResultCard = ({ result, isWinner }) => {
             </button>
           </div>
 
-          {/* TAB CONTENT VIEW */}
+          {/* Tab Content View */}
           {activeTab === 'feedback' ? (
             <div className="p-4 rounded-lg bg-zinc-950 border border-white/5 text-sm text-zinc-300 leading-relaxed min-h-[100px]">
               {result.feedback}
@@ -121,7 +120,6 @@ export default function Arena() {
         const pureCode = extractCode(gen.content) || gen.content;
         
         try {
-          // 1. Mentally Execute & Grade (Aegis v2)
           const evalResult = await evaluateCodeSubmission(prompt, pureCode, 'qwen-3-32b');
           
           const cleanScore = Number(evalResult?.score) || 0;
@@ -132,13 +130,13 @@ export default function Arena() {
               : String(evalResult.feedback);
           }
 
-          // 2. THE PUSH: Lock the results into Supabase
+          // Lock results into Supabase
           const { error: dbError } = await supabase
             .from('evaluations')
             .insert([
               {
-                model_id: gen.modelId,             // CRITICAL for Dashboard Leaderboard
-                challenge_prompt: prompt,          // CRITICAL for context
+                model_id: gen.modelId,
+                challenge_prompt: prompt,
                 correctness: evalResult.metrics?.correctness || 0,
                 efficiency: evalResult.metrics?.efficiency || 0,
                 readability: evalResult.metrics?.readability || 0,
@@ -157,7 +155,7 @@ export default function Arena() {
             console.log(`✅ Saved ${gen.modelId} evaluation to cloud!`);
           }
 
-          // 3. Return mapped object to UI
+          // Return mapped object to UI
           return { 
             ...gen, 
             code: pureCode, 
@@ -181,7 +179,7 @@ export default function Arena() {
         }
       }));
 
-      // Safely sort results by highest score
+      // Sort results by highest score
       const sortedResults = gradedResults.sort((a, b) => b.score - a.score);
       setResults(sortedResults);
 
@@ -195,8 +193,6 @@ export default function Arena() {
 
   return (
     <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      
-      {/* Header */}
       <div className="flex items-center gap-4 border-b border-white/10 pb-6">
         <div className="p-3 bg-indigo-500/10 rounded-2xl ring-1 ring-indigo-500/20">
           <Swords className="w-8 h-8 text-indigo-400" />

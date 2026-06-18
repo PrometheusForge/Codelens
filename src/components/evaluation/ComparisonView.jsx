@@ -74,15 +74,12 @@ const MOCK_COMPARISON = [
   }
 ];
 
-// --- UTILS ---
 const getScoreColors = (score) => {
   if (score >= 80) return { text: 'text-emerald-400', bg: 'bg-emerald-400/10', fill: 'bg-emerald-500', border: 'border-emerald-500/20' };
   if (score >= 60) return { text: 'text-amber-400', bg: 'bg-amber-400/10', fill: 'bg-amber-500', border: 'border-amber-500/20' };
   if (score >= 40) return { text: 'text-orange-400', bg: 'bg-orange-400/10', fill: 'bg-orange-500', border: 'border-orange-500/20' };
   return { text: 'text-rose-400', bg: 'bg-rose-400/10', fill: 'bg-rose-500', border: 'border-rose-500/20' };
 };
-
-// --- COMPONENTS ---
 
 const DimensionBar = ({ label, score }) => {
   const colors = getScoreColors(score);
@@ -103,12 +100,9 @@ const DimensionBar = ({ label, score }) => {
 };
 
 export default function ComparisonView() {
-  const [viewMode, setViewMode] = useState('metrics'); // 'metrics' | 'diff'
+  const [viewMode, setViewMode] = useState('metrics');
   const [copied, setCopied] = useState(false);
-
-  // Identify winner
-  const highestScore = useMemo(() => Math.max(...MOCK_COMPARISON.map(m => m.totalScore)), []);
-
+  const highestScore = useMemo(() => Math.max(...MOCK_COMPARISON.map(m => m.totalScore)), []);// Identify winner
   const handleExportMarkdown = () => {
     let md = `## Model Evaluation Comparison\n\n`;
     md += `| Model | Total | Correctness | Efficiency | Readability | Explanation | Time |\n`;
@@ -129,7 +123,6 @@ export default function ComparisonView() {
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 p-4 md:p-8 lg:p-12 overflow-x-hidden">
       <div className="mx-auto max-w-[1600px]">
         
-        {/* Header */}
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-3xl font-semibold tracking-tighter text-white">
@@ -211,8 +204,7 @@ export default function ComparisonView() {
                   <div className="flex-1">
                     {viewMode === 'metrics' ? (
                       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        
-                        {/* Dimension Bars */}
+
                         <div className="space-y-5">
                           <DimensionBar label="Correctness" score={model.dimensions.correctness} />
                           <DimensionBar label="Efficiency" score={model.dimensions.efficiency} />

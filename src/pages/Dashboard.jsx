@@ -1,4 +1,3 @@
-//import { Activity, Target } from 'lucide-react';
 import StatsRow from '../components/dashboard/StatsRow';
 import Leaderboard from '../components/dashboard/Leaderboard';
 import RadarChart from '../components/dashboard/RadarChart';
@@ -20,7 +19,6 @@ export default function Dashboard() {
             </p>
           </div>
           
-          {/* Last Updated Badge */}
           <div className="flex items-center gap-2 rounded-full bg-white/[0.02] px-4 py-2 ring-1 ring-white/5">
             <div className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -32,30 +30,22 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-12">
           
-          {/* STEP 6.1: Placed perfectly as an isolated component */}
           <StatsRow />
 
-          {/* BENTO GRID ROW 1: Leaderboard + Radar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8">
-              {/* STEP 6.2: Placed perfectly as an isolated component */}
               <Leaderboard />
             </div>
 
-           {/* STEP 6.3: Radar Chart Component */}
             <aside className="lg:col-span-4 flex flex-col gap-8">
               <RadarChart />
             </aside>
           </div>
 
-          {/* BENTO GRID ROW 2: Trend Chart */}
-          {/* Stretches full width to give the timeline room to breathe */}
           <div className="w-full">
             <TrendChart />
           </div>
 
-          {/* BENTO GRID ROW 3: Heatmap Grid */}
-          {/* Sits at the bottom as the granular data matrix */}
           <div className="w-full">
             <HeatmapGrid />
           </div>

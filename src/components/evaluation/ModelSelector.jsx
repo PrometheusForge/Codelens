@@ -3,7 +3,7 @@ import {
   Check, Cpu, Sparkles, Zap, AlertTriangle, ShieldCheck, Activity, ArrowRight, Layers
 } from 'lucide-react';
 
-// --- ACTUAL REGISTRY & DATA ---
+// Actual model registry - In a real implementation, this would likely be fetched from a backend or config file
 const MODEL_REGISTRY = [
   { 
     id: 'llama-3-70b', name: 'Llama 3 (70B)', provider: 'Groq', providerId: 'groq',
@@ -31,12 +31,8 @@ const MODEL_REGISTRY = [
   }
 ];
 
-// --- ZUSTAND STORE ---
 const useEvaluationStore = create((set) => ({
-  // Default to selecting one from each provider
-  selectedModels: ['llama-3-70b', 'gemini-1.5-flash', 'codellama-7b-hf'],
-  
-  // Rate limits aligned with your actual providers
+  selectedModels: ['llama-3-70b', 'gemini-1.5-flash', 'codellama-7b-hf'],  
   rateLimits: {
     'groq': 'ok',
     'google': 'ok', 
@@ -59,8 +55,6 @@ const useEvaluationStore = create((set) => ({
   
   clearAll: () => set({ selectedModels: [] })
 }));
-
-// --- COMPONENTS ---
 
 const Badge = ({ children, className = '' }) => (
   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest ring-1 ring-inset ${className}`}>
@@ -113,7 +107,6 @@ const ModelCard = ({ model, isSelected, onToggle, rateLimitStatus }) => {
           : 'bg-white/[0.02] ring-1 ring-white/5 hover:bg-white/[0.04] hover:ring-white/10'
       }`}
     >
-      {/* Inner Core */}
       <div className={`relative h-full rounded-[calc(2rem-0.375rem)] p-6 transition-all duration-500 flex flex-col gap-5 ${
         isSelected ? 'bg-zinc-900/80 ring-1 ring-white/10' : 'bg-zinc-950/50 ring-1 ring-white/5'
       }`}>
@@ -165,7 +158,7 @@ const ModelCard = ({ model, isSelected, onToggle, rateLimitStatus }) => {
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+// Main Page Component
 export default function ModelSelector() {
   const { 
     selectedModels, rateLimits, 
@@ -178,7 +171,6 @@ export default function ModelSelector() {
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 py-12 md:py-24">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         
-        {/* Editorial Header & Actions */}
         <header className="mb-12 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
             <div className="flex items-center gap-3 mb-4">
@@ -222,7 +214,7 @@ export default function ModelSelector() {
           </div>
         </header>
 
-        {/* Warning Banner (Translates in gracefully) */}
+        {/* Warning Banner */}
         <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOverloaded ? 'max-h-24 opacity-100 mb-8' : 'max-h-0 opacity-0 m-0'}`}>
           <div className="flex items-center justify-between rounded-2xl bg-amber-500/10 p-4 ring-1 ring-amber-500/20 backdrop-blur-md">
             <div className="flex items-center gap-4">
@@ -255,7 +247,7 @@ export default function ModelSelector() {
           ))}
         </div>
 
-        {/* Footer / Proceed CTA */}
+        {/* Footer */}
         <div className="mt-16 flex flex-col sm:flex-row items-center justify-between border-t border-white/5 pt-8 gap-6">
           <div className="flex items-center gap-3 text-sm font-medium text-zinc-500">
             <Activity className="w-4 h-4" />

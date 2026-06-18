@@ -1,14 +1,10 @@
 const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 
-// Defines the exact runtime versions used in the Piston Sandbox
 const LANGUAGE_CONFIG = {
   javascript: { language: 'javascript', version: '18.15.0', extension: 'js' },
   python:     { language: 'python',     version: '3.10.0', extension: 'py' }
 };
 
-/**
- * Sends the code directly to the Piston API for isolated Docker execution.
- */
 export const executeCode = async (code, language = 'javascript') => {
   const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
   
@@ -23,7 +19,7 @@ export const executeCode = async (code, language = 'javascript') => {
       args: [],
       compile_timeout: 10000,
       run_timeout: 3000,
-      run_memory_limit: 128000000 // 128MB RAM limit to prevent AI infinite loop crashes
+      run_memory_limit: 128000000
     })
   });
   
@@ -41,15 +37,8 @@ export const executeCode = async (code, language = 'javascript') => {
   };
 };
 
-/**
- * THE SECRET SAUCE: The Test Harness.
- * This dynamically appends code to the bottom of the AI's script to execute the function 
- * with our specific test cases and print the results to standard output.
- */
 const buildTestHarness = (code, language, testCase) => {
-  // Formats raw inputs like '[2,7,11,15]\n9' into function arguments '[2,7,11,15], 9'
   const formattedInput = testCase.input.replace(/\n/g, ', ');
-
   if (language === 'javascript') {
     return `
 ${code}
@@ -117,27 +106,20 @@ except Exception as e:
   return code; 
 };
 
-/**
- * Loops through the challenge test cases, runs them in the Sandbox, and tabulates a score.
- */
 export const runTestCases = async (code, language, testCases) => {
   const results = [];
   
   for (const testCase of testCases) {
     const startTime = Date.now();
     
-    // 1. Wrap the pure code in our execution harness
     const harnessedCode = buildTestHarness(code, language, testCase);
     
-    // 2. Send to Piston Docker Sandbox
     const execResult = await executeCode(harnessedCode, language);
     const executionTimeMs = Date.now() - startTime;
     
-    // 3. Compare terminal output against Expected Output
     const actualOutput = execResult.stdout.trim();
     const expectedOutput = String(testCase.expectedOutput).trim();
     
-    // It passes if Piston didn't crash AND the output exactly matches
     const passed = execResult.success && actualOutput === expectedOutput;
     
     results.push({

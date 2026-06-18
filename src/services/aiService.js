@@ -25,7 +25,6 @@ Rules:
 - NEVER use code from external libraries unless the problem explicitly requires it
 - If the problem has no optimal solution, explain the best you can achieve and why`;
 
-// ----- GROQ (Llama 3, Mixtral) -----
 export const queryGroq = async (prompt, modelId = 'llama-3.3-70b-versatile') => {
   const startTime = Date.now();
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -61,7 +60,6 @@ export const queryGroq = async (prompt, modelId = 'llama-3.3-70b-versatile') => 
   };
 };
 
-// ----- GOOGLE GEMINI -----
 export const queryGemini = async (prompt, modelId = 'gemini-2.5-flash') => {
   const startTime = Date.now();
   const response = await fetch(
@@ -98,7 +96,6 @@ export const queryGemini = async (prompt, modelId = 'gemini-2.5-flash') => {
   };
 };
 
-// ----- HUGGING FACE -----
 export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b-hf') => {
   const startTime = Date.now();
   const fullPrompt = `${CODING_SYSTEM_PROMPT}\n\nChallenge:\n${prompt}`;
@@ -134,7 +131,6 @@ export const queryHuggingFace = async (prompt, modelId = 'codellama/CodeLlama-7b
   };
 };
 
-// ----- COHERE -----
 export const queryCohere = async (prompt, modelId = 'command-r-08-2024') => {
   const startTime = Date.now();
   const response = await fetch('https://api.cohere.com/v1/chat', {
@@ -167,8 +163,7 @@ export const queryCohere = async (prompt, modelId = 'command-r-08-2024') => {
   };
 };
 
-// ----- DEEPSEEK OFFICIAL -----
-export const queryDeepSeek = async (prompt, modelId = 'deepseek-v4-flash') => {
+{/*export const queryDeepSeek = async (prompt, modelId = 'deepseek-v4-flash') => {
   const startTime = Date.now();
   const response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
@@ -201,9 +196,8 @@ export const queryDeepSeek = async (prompt, modelId = 'deepseek-v4-flash') => {
     inputTokens: data.usage?.prompt_tokens || 0,
     outputTokens: data.usage?.completion_tokens || 0,
   };
-};
+};*/}
 
-// ----- MISTRAL OFFICIAL -----
 export const queryMistral = async (prompt, modelId = 'open-mistral-nemo') => {
   const startTime = Date.now();
   const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -240,7 +234,6 @@ export const queryMistral = async (prompt, modelId = 'open-mistral-nemo') => {
 };
 
 
-// REGISTRY WITH ACTIVE GROQ MODELS
 export const MODEL_REGISTRY = [
   { 
     id: 'llama-3-70b',      
@@ -316,7 +309,6 @@ ${challenge.constraints.map(c => `- ${c}`).join('\n')}
 **Write your solution in ${challenge.language}.**`;
 };
 
-// ----- THE ENTERPRISE SIMULATED SANDBOX JUDGE (AEGIS V2) -----
 export const evaluateCodeSubmission = async (challengePrompt, submittedCode, modelId = 'qwen-3-32b') => {
   const systemPrompt = `You are **Aegis**, a strict, deterministic static analysis engine and Principal Staff Software Engineer.  
     You **never** run real code, but you trace, analyze, and rigorously evaluate any submitted code against a given coding challenge.  
@@ -443,7 +435,6 @@ Execute the multi-pass evaluation and return the JSON payload.`;
       messages: [
         { 
           role: 'system', 
-          // Force the word JSON into the system prompt (required by Groq)
           content: systemPrompt + '\n\nYou must respond in pure JSON format.' 
         },
         { 
@@ -474,10 +465,8 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     }
     const data = await response.json();
     
-    // Safely grab the content, defaulting to an empty string if undefined
     const rawContent = data.choices[0].message?.content || "";
 
-    // 1. Log the exact output to your browser's Developer Console
     console.log("=== RAW LLM JUDGE OUTPUT ===");
     console.log(rawContent);
     console.log("============================");
@@ -485,7 +474,6 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     const jsonStart = rawContent.indexOf('{');
     const jsonEnd = rawContent.lastIndexOf('}');
 
-    // 2. If no JSON brackets exist, push the LLM's excuse to the UI
     if (jsonStart === -1 || jsonEnd === -1) {
       const snippet = rawContent.trim() 
         ? rawContent.substring(0, 80) + "..." 
@@ -495,7 +483,6 @@ Execute the multi-pass evaluation and return the JSON payload.`;
 
     const cleanJsonString = rawContent.substring(jsonStart, jsonEnd + 1);
 
-    // 3. Catch actual parsing errors if the JSON is malformed
     try {
       return JSON.parse(cleanJsonString);
     } catch (parseError) {
@@ -505,7 +492,6 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     
   } catch (error) {
     console.error("Judge routing error:", error);
-    // Bulletproof fallback so the UI never crashes if the API throttles
     return { 
       score: 0, 
       client_facing_feedback: `API Error: ${error.message}. Please retry evaluation.`,

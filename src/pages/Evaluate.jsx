@@ -9,7 +9,6 @@ export default function Evaluate() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // NEW: State to hold a manually typed prompt
   const [customPrompt, setCustomPrompt] = useState('');
   const [codeSnippet, setCodeSnippet] = useState(''); 
   
@@ -21,7 +20,7 @@ export default function Evaluate() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [result, setResult] = useState(null);
 
-  // NEW: Smart variable that checks for a Challenge Card first, then falls back to the typed prompt
+  // Checks for a Challenge Card first then falls back to typed prompt
   const activePrompt = location.state?.challengePrompt || customPrompt;
 
   const clearChallengeContext = () => {
@@ -61,10 +60,8 @@ export default function Evaluate() {
     try {
       const evalContext = activePrompt || "Evaluate this code snippet for correctness and efficiency.";
       
-      // 1. Pass the code to Qwen 3 (Aegis v2) for LLM-based grading
       const evaluation = await evaluateCodeSubmission(evalContext, codeSnippet, 'qwen-3-32b');
 
-      // 2. THE PUSH: Send the results to Supabase matching your existing table schema
       const { error: dbError } = await supabase
         .from('evaluations')
         .insert([
@@ -89,18 +86,13 @@ export default function Evaluate() {
         console.log("Successfully locked evaluation into Supabase!");
       }
 
-      // 3. Update the UI
-      
-      // Step A: Grab the text from whatever key the AI decided to use
       let rawFeedback = evaluation.client_facing_feedback || evaluation.feedback || evaluation.technical_feedback || "";
-      
-      // Step B: Ensure it is a string and strip away any blank whitespace
-      let cleanFeedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : "";
+     
+      let cleanFeedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : ""; // Ensure it's a string
       
       setResult({ 
         status: 'success', 
         score: evaluation.score, 
-        // Step C: If it is completely empty after cleaning, force the fallback text
         feedback: cleanFeedback !== "" ? cleanFeedback : "Evaluation completed successfully. The AI judge processed the code but did not return a readable summary.", 
         metrics: evaluation.metrics 
       });
@@ -127,9 +119,8 @@ export default function Evaluate() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           
-          {/* DYNAMIC PROMPT UI */}
           {location.state?.challengePrompt ? (
-            // Challenge Card Mode: Show the Green Banner
+            // Challenge Card Green Banner
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg relative">
               <button 
                 onClick={clearChallengeContext}
@@ -147,7 +138,7 @@ export default function Evaluate() {
               </p>
             </div>
           ) : (
-            // Free Play Mode: Show the Text Box
+            // Free Play Mode: Text Box
             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
               <label className="flex items-center gap-2 text-sm font-medium text-zinc-400 mb-2">
                 <FileText className="w-4 h-4" /> Challenge Prompt
@@ -185,10 +176,8 @@ export default function Evaluate() {
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* Step 1: Generate */}
             <button 
               onClick={handleGenerate}
-              // NEW: Button un-disables as long as activePrompt has text!
               disabled={isGenerating || isEvaluating || !activePrompt.trim()}
               className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer border border-white/10"
               title={!activePrompt.trim() ? "Enter a prompt first" : ""}
@@ -197,7 +186,6 @@ export default function Evaluate() {
               {isGenerating ? 'Generating Solution...' : '1. Auto-Generate Solution'}
             </button>
 
-            {/* Step 2: Evaluate */}
             <button 
               onClick={handleEvaluate}
               disabled={isEvaluating || isGenerating || !codeSnippet.trim()}
@@ -210,7 +198,6 @@ export default function Evaluate() {
           </div>
         </div>
 
-        {/* Results Panel */}
         <div className="break-words bg-white/[0.02] border border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
           {result ? (
             <div className="break-words space-y-4 animate-in zoom-in-95 duration-300">
@@ -221,7 +208,7 @@ export default function Evaluate() {
               )}
               <h3 className="text-4xl font-bold text-white mb-2">Score: {result.score}</h3>
               
-              {/* Added a styled container for the feedback */}
+              {/* Styled feedback container */}
               <div className="bg-[#0c0c0e] border border-white/10 rounded-lg p-4 mt-4">
                 <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Evaluation Feedback</h4>
                 <p className="text-zinc-300 text-sm leading-relaxed">{result.feedback}</p>

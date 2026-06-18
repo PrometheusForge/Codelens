@@ -1,7 +1,6 @@
 export const challenges = [
 
-  // CATEGORY: ALGORITHMS (8 Challenges)
-  
+  // CATEGORY: ALGORITHMS (13 Challenges)
   {
     id: 'two-sum',
     title: '01. Two Sum',
@@ -163,10 +162,85 @@ export const challenges = [
     hints: ['Use binary search to partition the smaller array.'],
     createdAt: '2025-01-01T00:00:00Z'
   },
-
+  {
+    id: 'valid-palindrome',
+    title: '34. Valid Palindrome',
+    category: 'algorithms',
+    difficulty: 'easy',
+    language: 'both',
+    estimatedMinutes: 15,
+    prompt: `A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Given a string \`s\`, return \`true\` if it is a palindrome, or \`false\` otherwise.`,
+    constraints: ['1 <= s.length <= 2 * 10^5', 's consists only of printable ASCII characters.'],
+    examples: [{ input: 's = "A man, a plan, a canal: Panama"', output: 'true', explanation: '"amanaplanacanalpanama" is a palindrome.' }],
+    testCases: [
+      { id: 'tc1', input: 'A man, a plan, a canal: Panama', expectedOutput: 'true', points: 50 },
+      { id: 'tc2', input: 'race a car', expectedOutput: 'false', points: 50 }
+    ],
+    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
+    tags: ['two-pointers', 'string'],
+    evaluationFocus: ['correctness', 'efficiency'],
+    hints: ['Use two pointers, one at the start and one at the end, skipping non-alphanumeric characters.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'n-queens',
+    title: '35. N-Queens',
+    category: 'algorithms',
+    difficulty: 'hard',
+    language: 'both',
+    estimatedMinutes: 45,
+    prompt: `The n-queens puzzle is the problem of placing \`n\` queens on an \`n x n\` chessboard such that no two queens attack each other. Given an integer \`n\`, return all distinct solutions to the n-queens puzzle.`,
+    constraints: ['1 <= n <= 9'],
+    examples: [{ input: 'n = 4', output: '[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]', explanation: 'There are two distinct solutions for the 4-queens puzzle.' }],
+    testCases: [
+      { id: 'tc1', input: '4', expectedOutput: '[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N!)', space: 'O(N^2)' },
+    tags: ['backtracking', 'array'],
+    evaluationFocus: ['correctness', 'efficiency'],
+    hints: ['Use backtracking. Keep track of occupied columns and diagonals using sets or arrays.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'max-subarray',
+    title: '36. Maximum Subarray',
+    category: 'algorithms',
+    difficulty: 'easy',
+    language: 'both',
+    estimatedMinutes: 20,
+    prompt: `Given an integer array \`nums\`, find the subarray with the largest sum, and return its sum.`,
+    constraints: ['1 <= nums.length <= 10^5', '-10^4 <= nums[i] <= 10^4'],
+    examples: [{ input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6', explanation: 'The subarray [4,-1,2,1] has the largest sum 6.' }],
+    testCases: [
+      { id: 'tc1', input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
+    tags: ['array', 'dynamic-programming'],
+    evaluationFocus: ['efficiency'],
+    hints: ["Kadane's Algorithm is your friend here."],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'merge-k-lists',
+    title: '37. Merge k Sorted Lists',
+    category: 'algorithms',
+    difficulty: 'hard',
+    language: 'both',
+    estimatedMinutes: 40,
+    prompt: `You are given an array of \`k\` linked-lists \`lists\`, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.`,
+    constraints: ['k == lists.length', '0 <= k <= 10^4', '0 <= lists[i].length <= 500'],
+    examples: [{ input: 'lists = [[1,4,5],[1,3,4],[2,6]]', output: '[1,1,2,3,4,4,5,6]', explanation: 'The merged lists create a single sorted list.' }],
+    testCases: [
+      { id: 'tc1', input: '[[1,4,5],[1,3,4],[2,6]]', expectedOutput: '[1,1,2,3,4,4,5,6]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N log k)', space: 'O(k)' },
+    tags: ['linked-list', 'divide-and-conquer', 'heap'],
+    evaluationFocus: ['efficiency', 'correctness'],
+    hints: ['Consider using a priority queue (min-heap) or a divide and conquer approach.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
   
-  // CATEGORY: DATA STRUCTURES (5 Challenges)
-  
+  // CATEGORY: DATA STRUCTURES (9 Challenges)
   {
     id: 'stack-using-queues',
     title: '09. Implement a Stack Using Two Queues',
@@ -262,10 +336,84 @@ export const challenges = [
     hints: ['When resizing, remember to un-wrap the circular elements into a straight array.'],
     createdAt: '2025-01-01T00:00:00Z'
   },
+  {
+    id: 'reverse-linked-list',
+    title: '38. Reverse Linked List',
+    category: 'data-structures',
+    difficulty: 'easy',
+    language: 'both',
+    estimatedMinutes: 15,
+    prompt: `Given the \`head\` of a singly linked list, reverse the list, and return the reversed list.`,
+    constraints: ['The number of nodes in the list is the range [0, 5000].'],
+    examples: [{ input: 'head = [1,2,3,4,5]', output: '[5,4,3,2,1]', explanation: 'Standard list reversal.' }],
+    testCases: [
+      { id: 'tc1', input: '[1,2,3,4,5]', expectedOutput: '[5,4,3,2,1]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
+    tags: ['linked-list'],
+    evaluationFocus: ['correctness'],
+    hints: ['Keep track of previous, current, and next pointers.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'lfu-cache',
+    title: '39. Design LFU Cache',
+    category: 'data-structures',
+    difficulty: 'hard',
+    language: 'both',
+    estimatedMinutes: 50,
+    prompt: `Design and implement a data structure for a Least Frequently Used (LFU) cache. Implement the \`LFUCache\` class with \`get(key)\` and \`put(key, value)\` methods in O(1) average time complexity.`,
+    constraints: ['0 <= capacity <= 10^4'],
+    examples: [{ input: 'LFUCache(2), put(1,1), put(2,2), get(1), put(3,3), get(2)', output: 'null, null, null, 1, null, -1', explanation: 'Key 2 is evicted because its frequency is lower.' }],
+    testCases: [
+      { id: 'tc1', input: 'capacity:2\nput:1:1\nput:2:2\nget:1\nput:3:3\nget:2', expectedOutput: '1\n-1', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(1)', space: 'O(n)' },
+    tags: ['design', 'hash-map', 'linked-list'],
+    evaluationFocus: ['efficiency', 'architecture'],
+    hints: ['You will need multiple data structures: one for frequencies, one for keys, and a minimum frequency tracker.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'valid-anagram',
+    title: '40. Valid Anagram',
+    category: 'data-structures',
+    difficulty: 'easy',
+    language: 'both',
+    estimatedMinutes: 10,
+    prompt: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.`,
+    constraints: ['1 <= s.length, t.length <= 5 * 10^4'],
+    examples: [{ input: 's = "anagram", t = "nagaram"', output: 'true', explanation: 'Both contain the exact same characters.' }],
+    testCases: [
+      { id: 'tc1', input: 'anagram\nnagaram', expectedOutput: 'true', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
+    tags: ['hash-map', 'string'],
+    evaluationFocus: ['efficiency'],
+    hints: ['Count the frequencies of characters in both strings using an array of size 26.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'word-search-ii',
+    title: '41. Word Search II',
+    category: 'data-structures',
+    difficulty: 'hard',
+    language: 'both',
+    estimatedMinutes: 50,
+    prompt: `Given an \`m x n\` \`board\` of characters and a list of strings \`words\`, return all words on the board. Each word must be constructed from letters of sequentially adjacent cells.`,
+    constraints: ['1 <= board.length <= 12', '1 <= words.length <= 3 * 10^4'],
+    examples: [{ input: 'board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]', output: '["eat","oath"]', explanation: 'Found inside the grid.' }],
+    testCases: [
+      { id: 'tc1', input: 'mock_grid\nmock_words', expectedOutput: '["eat","oath"]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(M*N*3^L)', space: 'O(W)' },
+    tags: ['trie', 'backtracking'],
+    evaluationFocus: ['efficiency', 'correctness'],
+    hints: ['Combine a Trie (Prefix Tree) with DFS backtracking.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
 
-  
-  // CATEGORY: FRONTEND-SPECIFIC (7 Challenges)
-  
+  // CATEGORY: FRONTEND-SPECIFIC (11 Challenges)
   {
     id: 'debounce',
     title: '14. Implement debounce from scratch',
@@ -399,10 +547,84 @@ export const challenges = [
     hints: ['Track an `isLoading` state variable conceptually within your loop.'],
     createdAt: '2025-01-01T00:00:00Z'
   },
+  {
+    id: 'dom-selector',
+    title: '42. Simple DOM Selector',
+    category: 'frontend',
+    difficulty: 'easy',
+    language: 'javascript',
+    estimatedMinutes: 20,
+    prompt: `Write a function \`$(selector)\` that mimics jQuery. It should take a CSS selector string and return an array of matched DOM elements. If an ID selector is passed (e.g., "#myId"), return just that element.`,
+    constraints: ['Do not use document.querySelectorAll.'],
+    examples: [{ input: '$("#app")', output: '<div id="app"></div>', explanation: 'Returns a single element.' }],
+    testCases: [
+      { id: 'tc1', input: 'mock_dom', expectedOutput: 'element_match', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
+    tags: ['dom', 'javascript-fundamentals'],
+    evaluationFocus: ['correctness', 'edge-cases'],
+    hints: ['Check the first character of the string to decide between getElementById, getElementsByClassName, or getElementsByTagName.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'reactive-store',
+    title: '43. Implement a Reactive Store',
+    category: 'frontend',
+    difficulty: 'hard',
+    language: 'javascript',
+    estimatedMinutes: 45,
+    prompt: `Build a reactive state management system similar to Vue or MobX. Create a \`Store\` class where modifying a property automatically triggers subscribed callback functions.`,
+    constraints: ['Must handle deep object reactivity.'],
+    examples: [{ input: 'store.state.a = 2', output: 'Triggers callback attached to "a"', explanation: 'Reactivity in action.' }],
+    testCases: [
+      { id: 'tc1', input: 'mock_reactivity', expectedOutput: 'triggered', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(1) update', space: 'O(N) for subscriptions' },
+    tags: ['design-patterns', 'proxies'],
+    evaluationFocus: ['architecture', 'correctness'],
+    hints: ['Use Javascript ES6 Proxies.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'map-polyfill',
+    title: '44. Array Map Polyfill',
+    category: 'frontend',
+    difficulty: 'easy',
+    language: 'javascript',
+    estimatedMinutes: 10,
+    prompt: `Write a polyfill for \`Array.prototype.map\`. The function should iterate over the array, apply the callback, and return a new array.`,
+    constraints: ['Do not use the native .map() method.'],
+    examples: [{ input: '[1,2].myMap(x => x*2)', output: '[2,4]', explanation: 'Maps values properly.' }],
+    testCases: [
+      { id: 'tc1', input: '[1,2]\nx => x*2', expectedOutput: '[2,4]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
+    tags: ['javascript-fundamentals', 'polyfills'],
+    evaluationFocus: ['correctness'],
+    hints: ['Ensure you pass the element, index, and array array context into the callback.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'dom-diffing',
+    title: '45. Simple DOM Differ',
+    category: 'frontend',
+    difficulty: 'hard',
+    language: 'javascript',
+    estimatedMinutes: 60,
+    prompt: `Write a function that accepts two virtual DOM trees (objects with type, props, and children) and returns an array of mutation instructions (e.g., ADD, REMOVE, REPLACE) to transform the first tree into the second.`,
+    constraints: ['Assume a simplified vDOM structure.'],
+    examples: [{ input: 'oldNode, newNode', output: '[{type: "REPLACE", target: oldNode, replacement: newNode}]', explanation: 'Outputs instructions.' }],
+    testCases: [
+      { id: 'tc1', input: 'mock_vdom', expectedOutput: 'mock_instructions', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
+    tags: ['algorithms', 'virtual-dom'],
+    evaluationFocus: ['correctness', 'efficiency'],
+    hints: ['Recursively compare types, then properties, then children.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
 
-  
-  // CATEGORY: DEBUGGING (5 Challenges)
-  
+  // CATEGORY: DEBUGGING (7 Challenges)
   {
     id: 'react-memory-leak',
     title: '21. Fix Memory Leak in React Component',
@@ -543,9 +765,48 @@ export const challenges = [
     hints: ['Look at how `setCount` is used. Can you update state based on the *previous* state without reading the state variable directly?'],
     createdAt: '2025-01-01T00:00:00Z'
   },
+  {
+    id: 'debug-map-filter',
+    title: '52. Debug Map-Filter Chain',
+    category: 'debugging',
+    difficulty: 'easy',
+    language: 'javascript',
+    estimatedMinutes: 10,
+    brokenCode: `const data = [{id: 1, val: 10}, {id: 2, val: 20}];\nconst result = data.filter(d => d.val > 15).map(d => d.value * 2);`,
+    prompt: `The code is supposed to filter objects with a value over 15 and double them. Instead, it returns \`[NaN]\`. Fix the bug.`,
+    constraints: ['Keep it as a map/filter chain.'],
+    examples: [],
+    testCases: [
+      { id: 'tc1', input: 'conceptual', expectedOutput: '[40]', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
+    tags: ['javascript-fundamentals', 'debugging'],
+    evaluationFocus: ['correctness'],
+    hints: ['Look closely at the property names being accessed.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'debug-event-bus',
+    title: '53. Debug Event Bus Memory Leak',
+    category: 'debugging',
+    difficulty: 'hard',
+    language: 'javascript',
+    estimatedMinutes: 20,
+    brokenCode: `class Bus {\n  constructor() { this.subs = []; }\n  on(cb) { this.subs.push(cb); }\n  emit(data) { this.subs.forEach(c => c(data)); }\n}\n// in component:\nbus.on(() => { console.log(this.state); });`,
+    prompt: `Components subscribing to this global Event Bus are never garbage collected when destroyed. Implement an \`off\` method and demonstrate how to prevent the memory leak.`,
+    constraints: ['Must allow specific callback removal.'],
+    examples: [],
+    testCases: [
+      { id: 'tc1', input: 'conceptual', expectedOutput: 'unsubscribe_implemented', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(N) removal', space: 'O(N)' },
+    tags: ['architecture', 'memory-leak'],
+    evaluationFocus: ['architecture', 'security'],
+    hints: ['The `on` method should probably return an unsubscribe function, or you need an explicit `off(callback)` method.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
 
-  // CATEGORY: SYSTEM DESIGN (IN CODE) (5 Challenges)
-  
+  // CATEGORY: SYSTEM DESIGN (IN CODE) (7 Challenges)
   {
     id: 'token-bucket-limiter',
     title: '26. Implement a Token Bucket Rate Limiter',
@@ -641,9 +902,46 @@ export const challenges = [
     hints: ['Store events in an array. A snapshot is just an object `{ lastEventIndex, state }`.'],
     createdAt: '2025-01-01T00:00:00Z'
   },
+  {
+    id: 'url-shortener-hash',
+    title: '50. URL Shortener Base62',
+    category: 'system-design',
+    difficulty: 'easy',
+    language: 'javascript',
+    estimatedMinutes: 20,
+    prompt: `Write a Base62 encoder/decoder for a URL Shortener. Given an integer ID from a database, convert it to a Base62 string (a-z, A-Z, 0-9), and vice versa.`,
+    constraints: ['Must accurately convert large integers.'],
+    examples: [{ input: 'encodeId(125)', output: '"cb"', explanation: '125 in Base62 represents "cb"' }],
+    testCases: [
+      { id: 'tc1', input: '125', expectedOutput: 'cb', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(log N)', space: 'O(1)' },
+    tags: ['math', 'architecture'],
+    evaluationFocus: ['correctness'],
+    hints: ['Use repeated division and modulo operations.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
+  {
+    id: 'realtime-leaderboard',
+    title: '51. Real-time Leaderboard logic',
+    category: 'system-design',
+    difficulty: 'hard',
+    language: 'javascript',
+    estimatedMinutes: 50,
+    prompt: `Design an in-memory data structure for a gaming leaderboard that supports \`addScore(playerId, score)\` and \`getTopK(k)\` in highly optimal time. Assume millions of players but frequent reads of the top K.`,
+    constraints: ['getTopK must be significantly faster than sorting the entire list.'],
+    examples: [{ input: 'add(1, 100), add(2, 200), getTopK(1)', output: '[{playerId: 2, score: 200}]', explanation: 'Retrieves top player.' }],
+    testCases: [
+      { id: 'tc1', input: 'mock_leaderboard', expectedOutput: 'top_k_list', points: 100 }
+    ],
+    optimalComplexity: { time: 'O(log N) add, O(K) get', space: 'O(N)' },
+    tags: ['data-structures', 'heap', 'trees'],
+    evaluationFocus: ['efficiency'],
+    hints: ['Consider a balanced Binary Search Tree or maintaining a Min-Heap of size K.'],
+    createdAt: '2025-01-15T00:00:00Z'
+  },
 
-  // CATEGORY: BACKEND (3 Challenges)
-  
+  // CATEGORY: BACKEND (7 Challenges)
   {
     id: 'basic-url-router',
     title: '31. Build a Basic URL Router',
@@ -723,241 +1021,6 @@ export const challenges = [
     createdAt: '2025-01-12T00:00:00Z'
   },
   {
-    id: 'valid-palindrome',
-    title: '34. Valid Palindrome',
-    category: 'algorithms',
-    difficulty: 'easy',
-    language: 'both',
-    estimatedMinutes: 15,
-    prompt: `A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Given a string \`s\`, return \`true\` if it is a palindrome, or \`false\` otherwise.`,
-    constraints: ['1 <= s.length <= 2 * 10^5', 's consists only of printable ASCII characters.'],
-    examples: [{ input: 's = "A man, a plan, a canal: Panama"', output: 'true', explanation: '"amanaplanacanalpanama" is a palindrome.' }],
-    testCases: [
-      { id: 'tc1', input: 'A man, a plan, a canal: Panama', expectedOutput: 'true', points: 50 },
-      { id: 'tc2', input: 'race a car', expectedOutput: 'false', points: 50 }
-    ],
-    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
-    tags: ['two-pointers', 'string'],
-    evaluationFocus: ['correctness', 'efficiency'],
-    hints: ['Use two pointers, one at the start and one at the end, skipping non-alphanumeric characters.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'n-queens',
-    title: '35. N-Queens',
-    category: 'algorithms',
-    difficulty: 'hard',
-    language: 'both',
-    estimatedMinutes: 45,
-    prompt: `The n-queens puzzle is the problem of placing \`n\` queens on an \`n x n\` chessboard such that no two queens attack each other. Given an integer \`n\`, return all distinct solutions to the n-queens puzzle.`,
-    constraints: ['1 <= n <= 9'],
-    examples: [{ input: 'n = 4', output: '[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]', explanation: 'There are two distinct solutions for the 4-queens puzzle.' }],
-    testCases: [
-      { id: 'tc1', input: '4', expectedOutput: '[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N!)', space: 'O(N^2)' },
-    tags: ['backtracking', 'array'],
-    evaluationFocus: ['correctness', 'efficiency'],
-    hints: ['Use backtracking. Keep track of occupied columns and diagonals using sets or arrays.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'max-subarray',
-    title: '36. Maximum Subarray',
-    category: 'algorithms',
-    difficulty: 'easy',
-    language: 'both',
-    estimatedMinutes: 20,
-    prompt: `Given an integer array \`nums\`, find the subarray with the largest sum, and return its sum.`,
-    constraints: ['1 <= nums.length <= 10^5', '-10^4 <= nums[i] <= 10^4'],
-    examples: [{ input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6', explanation: 'The subarray [4,-1,2,1] has the largest sum 6.' }],
-    testCases: [
-      { id: 'tc1', input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
-    tags: ['array', 'dynamic-programming'],
-    evaluationFocus: ['efficiency'],
-    hints: ["Kadane's Algorithm is your friend here."],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'merge-k-lists',
-    title: '37. Merge k Sorted Lists',
-    category: 'algorithms',
-    difficulty: 'hard',
-    language: 'both',
-    estimatedMinutes: 40,
-    prompt: `You are given an array of \`k\` linked-lists \`lists\`, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.`,
-    constraints: ['k == lists.length', '0 <= k <= 10^4', '0 <= lists[i].length <= 500'],
-    examples: [{ input: 'lists = [[1,4,5],[1,3,4],[2,6]]', output: '[1,1,2,3,4,4,5,6]', explanation: 'The merged lists create a single sorted list.' }],
-    testCases: [
-      { id: 'tc1', input: '[[1,4,5],[1,3,4],[2,6]]', expectedOutput: '[1,1,2,3,4,4,5,6]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N log k)', space: 'O(k)' },
-    tags: ['linked-list', 'divide-and-conquer', 'heap'],
-    evaluationFocus: ['efficiency', 'correctness'],
-    hints: ['Consider using a priority queue (min-heap) or a divide and conquer approach.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-
-  // CATEGORY: DATA STRUCTURES
-  {
-    id: 'reverse-linked-list',
-    title: '38. Reverse Linked List',
-    category: 'data-structures',
-    difficulty: 'easy',
-    language: 'both',
-    estimatedMinutes: 15,
-    prompt: `Given the \`head\` of a singly linked list, reverse the list, and return the reversed list.`,
-    constraints: ['The number of nodes in the list is the range [0, 5000].'],
-    examples: [{ input: 'head = [1,2,3,4,5]', output: '[5,4,3,2,1]', explanation: 'Standard list reversal.' }],
-    testCases: [
-      { id: 'tc1', input: '[1,2,3,4,5]', expectedOutput: '[5,4,3,2,1]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
-    tags: ['linked-list'],
-    evaluationFocus: ['correctness'],
-    hints: ['Keep track of previous, current, and next pointers.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'lfu-cache',
-    title: '39. Design LFU Cache',
-    category: 'data-structures',
-    difficulty: 'hard',
-    language: 'both',
-    estimatedMinutes: 50,
-    prompt: `Design and implement a data structure for a Least Frequently Used (LFU) cache. Implement the \`LFUCache\` class with \`get(key)\` and \`put(key, value)\` methods in O(1) average time complexity.`,
-    constraints: ['0 <= capacity <= 10^4'],
-    examples: [{ input: 'LFUCache(2), put(1,1), put(2,2), get(1), put(3,3), get(2)', output: 'null, null, null, 1, null, -1', explanation: 'Key 2 is evicted because its frequency is lower.' }],
-    testCases: [
-      { id: 'tc1', input: 'capacity:2\nput:1:1\nput:2:2\nget:1\nput:3:3\nget:2', expectedOutput: '1\n-1', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(1)', space: 'O(n)' },
-    tags: ['design', 'hash-map', 'linked-list'],
-    evaluationFocus: ['efficiency', 'architecture'],
-    hints: ['You will need multiple data structures: one for frequencies, one for keys, and a minimum frequency tracker.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'valid-anagram',
-    title: '40. Valid Anagram',
-    category: 'data-structures',
-    difficulty: 'easy',
-    language: 'both',
-    estimatedMinutes: 10,
-    prompt: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.`,
-    constraints: ['1 <= s.length, t.length <= 5 * 10^4'],
-    examples: [{ input: 's = "anagram", t = "nagaram"', output: 'true', explanation: 'Both contain the exact same characters.' }],
-    testCases: [
-      { id: 'tc1', input: 'anagram\nnagaram', expectedOutput: 'true', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(n)', space: 'O(1)' },
-    tags: ['hash-map', 'string'],
-    evaluationFocus: ['efficiency'],
-    hints: ['Count the frequencies of characters in both strings using an array of size 26.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'word-search-ii',
-    title: '41. Word Search II',
-    category: 'data-structures',
-    difficulty: 'hard',
-    language: 'both',
-    estimatedMinutes: 50,
-    prompt: `Given an \`m x n\` \`board\` of characters and a list of strings \`words\`, return all words on the board. Each word must be constructed from letters of sequentially adjacent cells.`,
-    constraints: ['1 <= board.length <= 12', '1 <= words.length <= 3 * 10^4'],
-    examples: [{ input: 'board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"]', output: '["eat","oath"]', explanation: 'Found inside the grid.' }],
-    testCases: [
-      { id: 'tc1', input: 'mock_grid\nmock_words', expectedOutput: '["eat","oath"]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(M*N*3^L)', space: 'O(W)' },
-    tags: ['trie', 'backtracking'],
-    evaluationFocus: ['efficiency', 'correctness'],
-    hints: ['Combine a Trie (Prefix Tree) with DFS backtracking.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-
-  // CATEGORY: FRONTEND
-  {
-    id: 'dom-selector',
-    title: '42. Simple DOM Selector',
-    category: 'frontend',
-    difficulty: 'easy',
-    language: 'javascript',
-    estimatedMinutes: 20,
-    prompt: `Write a function \`$(selector)\` that mimics jQuery. It should take a CSS selector string and return an array of matched DOM elements. If an ID selector is passed (e.g., "#myId"), return just that element.`,
-    constraints: ['Do not use document.querySelectorAll.'],
-    examples: [{ input: '$("#app")', output: '<div id="app"></div>', explanation: 'Returns a single element.' }],
-    testCases: [
-      { id: 'tc1', input: 'mock_dom', expectedOutput: 'element_match', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
-    tags: ['dom', 'javascript-fundamentals'],
-    evaluationFocus: ['correctness', 'edge-cases'],
-    hints: ['Check the first character of the string to decide between getElementById, getElementsByClassName, or getElementsByTagName.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'reactive-store',
-    title: '43. Implement a Reactive Store',
-    category: 'frontend',
-    difficulty: 'hard',
-    language: 'javascript',
-    estimatedMinutes: 45,
-    prompt: `Build a reactive state management system similar to Vue or MobX. Create a \`Store\` class where modifying a property automatically triggers subscribed callback functions.`,
-    constraints: ['Must handle deep object reactivity.'],
-    examples: [{ input: 'store.state.a = 2', output: 'Triggers callback attached to "a"', explanation: 'Reactivity in action.' }],
-    testCases: [
-      { id: 'tc1', input: 'mock_reactivity', expectedOutput: 'triggered', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(1) update', space: 'O(N) for subscriptions' },
-    tags: ['design-patterns', 'proxies'],
-    evaluationFocus: ['architecture', 'correctness'],
-    hints: ['Use Javascript ES6 Proxies.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'map-polyfill',
-    title: '44. Array Map Polyfill',
-    category: 'frontend',
-    difficulty: 'easy',
-    language: 'javascript',
-    estimatedMinutes: 10,
-    prompt: `Write a polyfill for \`Array.prototype.map\`. The function should iterate over the array, apply the callback, and return a new array.`,
-    constraints: ['Do not use the native .map() method.'],
-    examples: [{ input: '[1,2].myMap(x => x*2)', output: '[2,4]', explanation: 'Maps values properly.' }],
-    testCases: [
-      { id: 'tc1', input: '[1,2]\nx => x*2', expectedOutput: '[2,4]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
-    tags: ['javascript-fundamentals', 'polyfills'],
-    evaluationFocus: ['correctness'],
-    hints: ['Ensure you pass the element, index, and array array context into the callback.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'dom-diffing',
-    title: '45. Simple DOM Differ',
-    category: 'frontend',
-    difficulty: 'hard',
-    language: 'javascript',
-    estimatedMinutes: 60,
-    prompt: `Write a function that accepts two virtual DOM trees (objects with type, props, and children) and returns an array of mutation instructions (e.g., ADD, REMOVE, REPLACE) to transform the first tree into the second.`,
-    constraints: ['Assume a simplified vDOM structure.'],
-    examples: [{ input: 'oldNode, newNode', output: '[{type: "REPLACE", target: oldNode, replacement: newNode}]', explanation: 'Outputs instructions.' }],
-    testCases: [
-      { id: 'tc1', input: 'mock_vdom', expectedOutput: 'mock_instructions', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
-    tags: ['algorithms', 'virtual-dom'],
-    evaluationFocus: ['correctness', 'efficiency'],
-    hints: ['Recursively compare types, then properties, then children.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-
-  // CATEGORY: BACKEND
-  {
     id: 'query-parser',
     title: '46. Query String Parser',
     category: 'backend',
@@ -1033,86 +1096,4 @@ export const challenges = [
     hints: ['Use a sorted array for the ring and binary search to find the nearest node.'],
     createdAt: '2025-01-15T00:00:00Z'
   },
-
-  // CATEGORY: SYSTEM DESIGN
-  {
-    id: 'url-shortener-hash',
-    title: '50. URL Shortener Base62',
-    category: 'system-design',
-    difficulty: 'easy',
-    language: 'javascript',
-    estimatedMinutes: 20,
-    prompt: `Write a Base62 encoder/decoder for a URL Shortener. Given an integer ID from a database, convert it to a Base62 string (a-z, A-Z, 0-9), and vice versa.`,
-    constraints: ['Must accurately convert large integers.'],
-    examples: [{ input: 'encodeId(125)', output: '"cb"', explanation: '125 in Base62 represents "cb"' }],
-    testCases: [
-      { id: 'tc1', input: '125', expectedOutput: 'cb', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(log N)', space: 'O(1)' },
-    tags: ['math', 'architecture'],
-    evaluationFocus: ['correctness'],
-    hints: ['Use repeated division and modulo operations.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'realtime-leaderboard',
-    title: '51. Real-time Leaderboard logic',
-    category: 'system-design',
-    difficulty: 'hard',
-    language: 'javascript',
-    estimatedMinutes: 50,
-    prompt: `Design an in-memory data structure for a gaming leaderboard that supports \`addScore(playerId, score)\` and \`getTopK(k)\` in highly optimal time. Assume millions of players but frequent reads of the top K.`,
-    constraints: ['getTopK must be significantly faster than sorting the entire list.'],
-    examples: [{ input: 'add(1, 100), add(2, 200), getTopK(1)', output: '[{playerId: 2, score: 200}]', explanation: 'Retrieves top player.' }],
-    testCases: [
-      { id: 'tc1', input: 'mock_leaderboard', expectedOutput: 'top_k_list', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(log N) add, O(K) get', space: 'O(N)' },
-    tags: ['data-structures', 'heap', 'trees'],
-    evaluationFocus: ['efficiency'],
-    hints: ['Consider a balanced Binary Search Tree or maintaining a Min-Heap of size K.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-
-  // CATEGORY: DEBUGGING
-  {
-    id: 'debug-map-filter',
-    title: '52. Debug Map-Filter Chain',
-    category: 'debugging',
-    difficulty: 'easy',
-    language: 'javascript',
-    estimatedMinutes: 10,
-    brokenCode: `const data = [{id: 1, val: 10}, {id: 2, val: 20}];\nconst result = data.filter(d => d.val > 15).map(d => d.value * 2);`,
-    prompt: `The code is supposed to filter objects with a value over 15 and double them. Instead, it returns \`[NaN]\`. Fix the bug.`,
-    constraints: ['Keep it as a map/filter chain.'],
-    examples: [],
-    testCases: [
-      { id: 'tc1', input: 'conceptual', expectedOutput: '[40]', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N)', space: 'O(N)' },
-    tags: ['javascript-fundamentals', 'debugging'],
-    evaluationFocus: ['correctness'],
-    hints: ['Look closely at the property names being accessed.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  },
-  {
-    id: 'debug-event-bus',
-    title: '53. Debug Event Bus Memory Leak',
-    category: 'debugging',
-    difficulty: 'hard',
-    language: 'javascript',
-    estimatedMinutes: 20,
-    brokenCode: `class Bus {\n  constructor() { this.subs = []; }\n  on(cb) { this.subs.push(cb); }\n  emit(data) { this.subs.forEach(c => c(data)); }\n}\n// in component:\nbus.on(() => { console.log(this.state); });`,
-    prompt: `Components subscribing to this global Event Bus are never garbage collected when destroyed. Implement an \`off\` method and demonstrate how to prevent the memory leak.`,
-    constraints: ['Must allow specific callback removal.'],
-    examples: [],
-    testCases: [
-      { id: 'tc1', input: 'conceptual', expectedOutput: 'unsubscribe_implemented', points: 100 }
-    ],
-    optimalComplexity: { time: 'O(N) removal', space: 'O(N)' },
-    tags: ['architecture', 'memory-leak'],
-    evaluationFocus: ['architecture', 'security'],
-    hints: ['The `on` method should probably return an unsubscribe function, or you need an explicit `off(callback)` method.'],
-    createdAt: '2025-01-15T00:00:00Z'
-  }
 ];
