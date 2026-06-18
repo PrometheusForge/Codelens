@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
 import { 
-  ArrowRight, TerminalSquare, Swords, 
-  Activity, ShieldAlert, Zap, Cpu
-} from 'lucide-react';
+  ArrowRight, TerminalSquare, Swords, Activity, ShieldAlert} from 'lucide-react';
 
 // --- ACETERNITY-STYLE BACKGROUND EFFECT ---
 const AuroraBackground = () => (

@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { 
-  Home, LayoutDashboard, Target, 
-  FileText, Code2, PlaySquare, Menu, X, TerminalSquare 
+  Home, LayoutDashboard, Target, FileText, Code2, PlaySquare, Menu, X, TerminalSquare 
 } from 'lucide-react';
 
 export default function PageLayout({ children }) {

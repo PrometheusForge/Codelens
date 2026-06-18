@@ -503,8 +503,8 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     try {
       return JSON.parse(cleanJsonString);
     } catch (parseError) {
-      console.error("JSON Parsing failed on this string:", cleanJsonString);
-      throw new Error("Model returned broken JSON (check browser console for details).");
+      console.error("JSON Parsing failed...");
+      throw new Error("Model returned broken JSON.", { cause: parseError });
     }
     
   } catch (error) {

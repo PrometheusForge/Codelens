@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, CheckCircle, Loader2, AlertTriangle, Swords, Trophy, Clock, Code, ChevronRight, MessageSquare, FileCode2 } from 'lucide-react';
+import { Play, CheckCircle, Loader2, Swords, Trophy, Clock, Code, MessageSquare, FileCode2 } from 'lucide-react';
 import { MODEL_REGISTRY, queryAllModels, evaluateCodeSubmission } from '../services/aiService';
 import { extractCode } from '../utils/codeExtractor';
 import { supabase } from '../services/supabaseClient';

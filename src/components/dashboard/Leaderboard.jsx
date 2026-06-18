@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Activity, Cpu, Layers, Target, 
-  TrendingUp, TrendingDown, Crown, 
-  ChevronRight, TerminalSquare, Sparkles, Zap, Box, Loader2
+  Cpu, Layers, Target, Crown, ChevronRight, TerminalSquare, Sparkles, Zap, Box, Loader2
 } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient'; // Adjust path if needed
 import { MODEL_REGISTRY } from '../../services/aiService'; // Adjust path if needed

@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { 
-  Check, Cpu, Sparkles, Zap, Box, 
-  AlertTriangle, ShieldCheck, Activity, 
-  CheckCircle2, Info, ArrowRight, Layers
+  Check, Cpu, Sparkles, Zap, AlertTriangle, ShieldCheck, Activity, ArrowRight, Layers
 } from 'lucide-react';
 
 // --- ACTUAL REGISTRY & DATA ---

@@ -26,6 +26,7 @@ const isSupabaseConfigured = () => {
   // Use try/catch for safe environment variable access
   // When running locally in Vite or Next, this resolves gracefully.
   try {
+    // eslint-disable-next-line no-undef
     const url = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SUPABASE_URL : process?.env?.VITE_SUPABASE_URL;
     return !!url && url !== 'YOUR_SUPABASE_URL';
   } catch (e) {
@@ -88,7 +89,7 @@ export default function ChallengeForm() {
   const [status, setStatus] = useState({ type: 'idle', message: '' });
 
   // Handlers
-  const handleInputChange = (e) => {
+  const handleInputChange = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -105,7 +106,7 @@ export default function ChallengeForm() {
     setTestCases(prev => prev.map(tc => tc.id === id ? { ...tc, [field]: value } : tc));
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async () => {
     e.preventDefault();
     setStatus({ type: 'loading', message: 'Validating...' });
 

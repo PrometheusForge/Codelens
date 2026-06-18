@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { 
-  Crown, Download, Code2, LayoutGrid, 
-  CheckCircle2, XCircle, Clock, Check,
-  TerminalSquare, Sparkles, Zap
+  Crown, Download, Code2, LayoutGrid, Clock, Check, TerminalSquare, Sparkles, Zap
 } from 'lucide-react';
 
 // --- MOCK DATA ---

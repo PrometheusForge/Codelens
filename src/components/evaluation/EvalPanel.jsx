@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { 
-  Save, GitCompare, Terminal, CheckCircle2, 
-  XCircle, Info, ChevronRight, Activity, 
-  Cpu, Layout, Sparkles, AlertCircle
+  Save, GitCompare, Terminal, CheckCircle2, XCircle, Info, Activity, Cpu, Sparkles,
 } from 'lucide-react';
 
 // --- MOCK DATA ---

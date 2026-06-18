@@ -9,7 +9,6 @@ export const autoScoreCorrectness = (testRunResult) => {
 // Efficiency: parse AI's complexity claims; validate against the challenge's optimal
 export const autoScoreEfficiency = (aiResponse, challenge) => {
   const timeMatch  = aiResponse.match(/time[^:]*:\s*O\(([^)]+)\)/i);
-  const spaceMatch = aiResponse.match(/space[^:]*:\s*O\(([^)]+)\)/i);
   
   const claimedTime  = timeMatch  ? `O(${timeMatch[1]})`.toLowerCase()  : null;
   const optimalTime  = challenge.optimalComplexity?.time?.toLowerCase()  || null;

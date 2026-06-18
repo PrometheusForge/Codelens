@@ -1,4 +1,4 @@
-export const extractCode = (aiResponse, targetLanguage = 'javascript') => {
+export const extractCode = (aiResponse) => {
   if (!aiResponse || typeof aiResponse !== 'string') return '';
   
   // Pattern 1: Fenced code block with language label

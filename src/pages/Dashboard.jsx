@@ -1,4 +1,4 @@
-import { Activity, Target } from 'lucide-react';
+//import { Activity, Target } from 'lucide-react';
 import StatsRow from '../components/dashboard/StatsRow';
 import Leaderboard from '../components/dashboard/Leaderboard';
 import RadarChart from '../components/dashboard/RadarChart';
