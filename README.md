@@ -1,16 +1,48 @@
-# React + Vite
+# 🔎 Codelens: AI Model Evaluation & Benchmarking Matrix
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Status](https://img.shields.io/badge/Status-Active-success)
+![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-B73BFE?style=flat&logo=vite&logoColor=FFD62E)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-181818?style=flat&logo=supabase&logoColor=3ECF8E)
 
-Currently, two official plugins are available:
+## 🎯 The Problem
+As Large Language Models proliferate, organizations lack standardized, internal tooling to empirically measure model correctness and efficiency for specific coding challenges. Relying on subjective testing leads to inconsistent deployments.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 💡 The Solution: Codelens
+Codelens is a high-performance, React-based dashboard engineered to administer automated coding challenges to leading LLMs (Llama 3, Cohere, etc.) and rigorously track their outputs. It provides an empirical, data-driven arena for comparing AI performance over longitudinal timeframes. 
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🏗️ System Architecture & Technical Highlights
 
-## Expanding the ESLint configuration
+This project demonstrates proficiency in modern full-stack development, API integration, and automated deployments:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* **State Management & Routing:** Utilizes React 18 hooks and `react-router-dom` (configured with `HashRouter` fallbacks) for seamless, client-side Single Page Application (SPA) navigation.
+* **Data Visualization:** Aggregates timestamped Supabase data into calculated time buckets (2H, 4H, Daily) to render dynamic trajectory charts using **Recharts**.
+* **Asynchronous API Integration:** Robust handling of multiple AI API endpoints to evaluate code snippets, complete with error handling and loading states.
+* **CI/CD Pipeline:** Configured GitHub Actions workflows for automated dependency installation, strict ESLint validation, environment variable injection, and continuous deployment to GitHub Pages.
+
+---
+
+## 🚧 Challenges Solved
+
+Building this platform required navigating complex technical hurdles with extreme dedication and focus:
+1. **CI/CD Build Failures:** Overcame pipeline blockers by meticulously debugging strict ESLint configurations and resolving unused variable dependency loops to achieve a 100% clean automated build process.
+2. **Static Hosting Routing:** Engineered a `404.html` fallback system within the GitHub Actions workflow to allow clean URLs on a static file server without breaking direct page reloads.
+3. **API Data Normalization:** Standardized varying JSON response structures from different AI model providers into a single, unified database schema in Supabase for consistent frontend rendering.
+
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v18+)
+* `npm`
+
+### Installation & Local Setup
+
+1. **Clone the repository:**
+```bash
+   git clone [https://github.com/prometheusforge/Codelens.git](https://github.com/prometheusforge/Codelens.git)
+   cd Codelens
