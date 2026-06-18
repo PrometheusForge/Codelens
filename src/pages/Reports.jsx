@@ -198,7 +198,7 @@ export default function Reports() {
 
   if (selectedSession) {
     return (
-      <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 print:bg-white print:text-black py-12 md:py-24">
+      <div className="bg-[#09090b] text-zinc-100 print:bg-white print:text-black py-12 md:py-24">
         <div className="mx-auto max-w-[1000px] px-4 md:px-8">
           
           {/* Action Bar (Hidden when printing) */}
@@ -333,8 +333,8 @@ export default function Reports() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 py-12 md:py-24">
-      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+    <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 p-8 md:px-8 md:py-15">
+      <div className="mx-auto max-w-[1200px]">
         
         <header className="mb-12">
           <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
