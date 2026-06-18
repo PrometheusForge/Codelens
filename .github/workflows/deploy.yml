@@ -41,7 +41,9 @@ jobs:
           VITE_COHERE_API_KEY: ${{ secrets.VITE_COHERE_API_KEY }}
           VITE_HF_API_KEY: ${{ secrets.VITE_HF_API_KEY }}
           VITE_MISTRAL_API_KEY: ${{ secrets.VITE_MISTRAL_API_KEY }}
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
