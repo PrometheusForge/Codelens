@@ -12,7 +12,6 @@ export default defineConfig([
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
-      tailwind.config.js,
     ],
     languageOptions: {
       globals: globals.browser,
