@@ -29,7 +29,7 @@ const isSupabaseConfigured = () => {
     // eslint-disable-next-line no-undef
     const url = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SUPABASE_URL : process?.env?.VITE_SUPABASE_URL;
     return !!url && url !== 'YOUR_SUPABASE_URL';
-  } catch (e) {
+  } catch {
     return false;
   }
 };
