@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
 import { 
   Home, LayoutDashboard, Target, FileText, Code2, PlaySquare, Menu, X, TerminalSquare 
 } from 'lucide-react';
 
 export default function PageLayout({ children }) {
   const [isOpen, setIsOpen] = useState(true);
+  const location = useLocation();
+
+  const mainRef = useRef(null);
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
@@ -88,11 +96,16 @@ export default function PageLayout({ children }) {
       </motion.aside>
 
       {/* Main Content Area */}
-      {/* Added pb-24 on mobile so the content doesn't get hidden behind the floating menu */}
-      <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-[#030305] pb-24 md:pb-0">
+      <main ref={mainRef} className="flex-1 relative overflow-y-auto overflow-x-hidden bg-[#030305] md:pb-0">
         <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-        <div className="relative z-10 h-full">
-          {children}
+        
+        {/* Wrap children in a flex column and add a physical spacer at the bottom */}
+        <div className="relative z-10 min-h-full flex flex-col">
+          <div className="flex-1">
+            {children}
+          </div>
+          {/* INVISIBLE MOBILE SPACER: Forces the scrollbar to go 112px deeper so nothing gets covered */}
+          <div className="h-28 w-full shrink-0 md:hidden" />
         </div>
       </main>
 
