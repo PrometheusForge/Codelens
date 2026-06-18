@@ -24,6 +24,7 @@ This project demonstrates proficiency in modern full-stack development, API inte
 * **Data Visualization:** Aggregates timestamped Supabase data into calculated time buckets (2H, 4H, Daily) to render dynamic trajectory charts using **Recharts**.
 * **Asynchronous API Integration:** Robust handling of multiple AI API endpoints to evaluate code snippets, complete with error handling and loading states.
 * **CI/CD Pipeline:** Configured GitHub Actions workflows for automated dependency installation, strict ESLint validation, environment variable injection, and continuous deployment to GitHub Pages.
+* **Responsive UI/UX Architecture:** Engineered a fluid, mobile-responsive layout utilizing Tailwind CSS, featuring a dynamic `backdrop-blur` floating "glass" navigation bar for optimal viewport utilization on smaller devices.
 
 ---
 
@@ -33,6 +34,7 @@ Building this platform required navigating complex technical hurdles with extrem
 1. **CI/CD Build Failures:** Overcame pipeline blockers by meticulously debugging strict ESLint configurations and resolving unused variable dependency loops to achieve a 100% clean automated build process.
 2. **Static Hosting Routing:** Engineered a `404.html` fallback system within the GitHub Actions workflow to allow clean URLs on a static file server without breaking direct page reloads.
 3. **API Data Normalization:** Standardized varying JSON response structures from different AI model providers into a single, unified database schema in Supabase for consistent frontend rendering.
+4. **Mobile Dashboard Optimization:** Resolved complex viewport occlusion and Single Page Application (SPA) scroll-restoration quirks by implementing custom `useRef` routing hooks and conditional state-driven navigation overlays.
 
 ---
 
