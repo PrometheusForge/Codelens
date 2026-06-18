@@ -29,7 +29,7 @@ const isSupabaseConfigured = () => {
     // eslint-disable-next-line no-undef
     const url = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SUPABASE_URL : process?.env?.VITE_SUPABASE_URL;
     return !!url && url !== 'YOUR_SUPABASE_URL';
-  } catch (e) {
+  } catch () {
     return false;
   }
 };
@@ -89,7 +89,7 @@ export default function ChallengeForm() {
   const [status, setStatus] = useState({ type: 'idle', message: '' });
 
   // Handlers
-  const handleInputChange = () => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -106,7 +106,7 @@ export default function ChallengeForm() {
     setTestCases(prev => prev.map(tc => tc.id === id ? { ...tc, [field]: value } : tc));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setStatus({ type: 'loading', message: 'Validating...' });
 
