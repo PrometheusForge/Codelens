@@ -544,9 +544,9 @@ export default function Challenges() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full appearance-none rounded-xl bg-[#09090b] px-4 py-3 text-sm font-medium text-zinc-300 ring-1 ring-white/10 transition-all focus:outline-none focus:ring-white/20"
                 >
+                  <option value="title">Alphabetical</option>
                   <option value="newest">Newest Added</option>
                   <option value="difficulty">Difficulty Level</option>
-                  <option value="title">Alphabetical</option>
                 </select>
                 <SlidersHorizontal className="absolute right-4 top-1/2 w-4 h-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
               </div>
