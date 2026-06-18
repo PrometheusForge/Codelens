@@ -9,6 +9,7 @@ import {
   Copy, Check, TerminalSquare, Activity, Beaker
 } from 'lucide-react';
 import { challenges } from '../data/challenges.js';
+import { supabase } from '../services/supabaseClient';
 
 
 // --- ZUSTAND STORE ---
@@ -69,8 +70,35 @@ const Badge = ({ children, className = '' }) => (
 const SlideOver = ({ challenge, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [showAllTests, setShowAllTests] = useState(false);
-
+  const [pastResults, setPastResults] = useState([]);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!challenge) return;
+
+    const fetchPastResults = async () => {
+      setIsLoadingResults(true);
+      try {
+        const { data, error } = await supabase
+          .from('evaluations') // Make sure this is your actual table name
+          .select('*')
+          // FIX: Use challenge_prompt from your schema instead of challenge_id
+          .eq('challenge_prompt', challenge.prompt) 
+          .order('created_at', { ascending: false }) 
+          .limit(3); 
+
+        if (error) throw error;
+        setPastResults(data || []);
+      } catch (error) {
+        console.error("Error fetching results:", error);
+      } finally {
+        setIsLoadingResults(false);
+      }
+    };
+
+    fetchPastResults();
+  }, [challenge]);
 
   // Keyboard shortcut to close
   useEffect(() => {
@@ -222,17 +250,37 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 bg-zinc-950/50">
-                  {MOCK_PAST_RESULTS.map((res) => (
-                    <tr key={res.id} className="transition-colors hover:bg-white/[0.02]">
-                      <td className="px-6 py-4 font-medium text-zinc-200">{res.model}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 ${res.success ? 'text-emerald-400' : 'text-orange-400'}`}>
-                          {res.score}%
-                        </span>
+                  {isLoadingResults ? (
+                    <tr>
+                      <td colSpan="3" className="px-6 py-8 text-center text-xs text-zinc-500 animate-pulse">
+                        Retrieving telemetry data...
                       </td>
-                      <td className="px-6 py-4 text-right text-xs text-zinc-500">{res.time}</td>
                     </tr>
-                  ))}
+                  ) : pastResults.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="px-6 py-8 text-center text-xs text-zinc-500">
+                        No evaluations recorded yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    pastResults.slice(0, 5).map((res) => (
+                      <tr key={res.id} className="transition-colors hover:bg-white/[0.02]">
+                        {/* FIX: Mapped to model_id */}
+                        <td className="px-6 py-4 font-medium text-zinc-200 capitalize">
+                          {res.model_id.replace(/-/g, ' ')}
+                        </td>
+                        <td className="px-6 py-4">
+                          {/* FIX: Mapped to weighted_total */}
+                          <span className={`inline-flex items-center gap-1.5 ${res.weighted_total >= 80 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                            {res.weighted_total}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right text-xs text-zinc-500">
+                          {new Date(res.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -241,7 +289,7 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
         </div>
 
         {/* Footer (Sticky CTA) */}
-        <div className="flex-shrink-0 p-6 border-t border-white/5 bg-[#09090b]/80 backdrop-blur-xl">
+        <div className="flex-shrink-0 p-6 pb-28 md:pb-6 border-t border-white/5 bg-[#09090b]/80 backdrop-blur-xl">
           <button 
             onClick={(e) => {
               e.preventDefault();
