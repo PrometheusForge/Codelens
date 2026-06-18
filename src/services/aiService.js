@@ -249,6 +249,7 @@ export const MODEL_REGISTRY = [
     fn: (p) => queryGroq(p, 'llama-3.3-70b-versatile'), 
     color: '#4f46e5' 
   },
+  
   { 
     id: 'gemini-2.5-flash',     
     label: 'Gemini 2.5 Flash', 
@@ -256,13 +257,7 @@ export const MODEL_REGISTRY = [
     fn: (p) => queryGemini(p),                  
     color: '#4796E3' 
   },
-  { 
-    id: 'gemini-2.5-pro',     
-    label: 'Gemini 2.5 Pro', 
-    provider: 'Google',     
-    fn: (p) => queryGemini(p, 'gemini-2.5-pro'),                  
-    color: '#15803d'
-  },
+
   { 
     id: 'command-r-08-2024',
     label: 'Cohere Command R',  
@@ -270,6 +265,7 @@ export const MODEL_REGISTRY = [
     fn: (p) => queryCohere(p, 'command-r-08-2024'), 
     color: '#f43f5e' 
   },
+
   { 
     id: 'open-mistral-nemo',      
     label: 'Mistral Nemo',      
