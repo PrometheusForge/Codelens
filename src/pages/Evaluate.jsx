@@ -71,20 +71,15 @@ export default function Evaluate() {
           {
             model_id: selectedModelId,         
             challenge_prompt: evalContext,
-            // We map the Aegis JSON directly to your SQL constraints
             correctness: evaluation.metrics?.correctness || 0,
             efficiency: evaluation.metrics?.efficiency || 0,
             readability: evaluation.metrics?.readability || 0,
             explanation: evaluation.metrics?.explanation || 0,
             security: evaluation.metrics?.security || 0,
-            
             weighted_total: evaluation.score || 0,
-            notes: evaluation.feedback || '',
+            notes: evaluation.technical_feedback || '', 
             test_results: evaluation.simulatedExecution || {},
             is_auto_scored: true
-            
-            // Note: If your database requires response_id, you will need to 
-            // insert into 'ai_responses' first and pass that ID here!
           }
         ]);
 
@@ -95,11 +90,19 @@ export default function Evaluate() {
       }
 
       // 3. Update the UI
+      
+      // Step A: Grab the text from whatever key the AI decided to use
+      let rawFeedback = evaluation.client_facing_feedback || evaluation.feedback || evaluation.technical_feedback || "";
+      
+      // Step B: Ensure it is a string and strip away any blank whitespace
+      let cleanFeedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : "";
+      
       setResult({ 
         status: 'success', 
         score: evaluation.score, 
-        feedback: evaluation.feedback,
-        metrics: evaluation.metrics // Passing metrics to the UI just in case
+        // Step C: If it is completely empty after cleaning, force the fallback text
+        feedback: cleanFeedback !== "" ? cleanFeedback : "Evaluation completed successfully. The AI judge processed the code but did not return a readable summary.", 
+        metrics: evaluation.metrics 
       });
       
     } catch (error) {
@@ -115,10 +118,10 @@ export default function Evaluate() {
   };
 
   return (
-    <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="p-8 md:px-8 md:py-15 mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Evaluation Engine</h1>
-        <p className="text-zinc-400 mt-2">Select a model and input code to analyze performance metrics.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">Evaluation Engine</h1>
+        <p className="mt-4 text-lg text-zinc-400 leading-relaxed max-w-[50ch]">Select a model and input code to analyze performance metrics.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -176,7 +179,7 @@ export default function Evaluate() {
             <textarea 
               value={codeSnippet}
               onChange={(e) => setCodeSnippet(e.target.value)}
-              className="w-full h-64 bg-[#0c0c0e] border border-white/10 rounded-lg p-4 font-mono text-sm text-zinc-300 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full h-30 bg-[#0c0c0e] border border-white/10 rounded-lg p-4 font-mono text-sm text-zinc-300 outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="// Paste or generate code here..."
             />
           </div>
@@ -216,11 +219,16 @@ export default function Evaluate() {
               ) : (
                  <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
               )}
-              <h3 className="text-2xl font-bold text-white">Score: {result.score}</h3>
-              <p className="text-zinc-400">{result.feedback}</p>
+              <h3 className="text-4xl font-bold text-white mb-2">Score: {result.score}</h3>
+              
+              {/* Added a styled container for the feedback */}
+              <div className="bg-[#0c0c0e] border border-white/10 rounded-lg p-4 mt-4">
+                <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Evaluation Feedback</h4>
+                <p className="text-zinc-300 text-sm leading-relaxed">{result.feedback}</p>
+              </div>
             </div>
           ) : (
-            <div className="break-words text-zinc-500 space-y-4">
+            <div className="break-words whitespace-pre-wrap text-zinc-500 space-y-4">
               <Code className="w-16 h-16 mx-auto opacity-20" />
               <p>Waiting for evaluation input...</p>
             </div>

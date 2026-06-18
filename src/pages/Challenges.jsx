@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { create } from 'zustand';
 import ReactMarkdown from 'react-markdown';
@@ -433,12 +433,12 @@ export default function Challenges() {
         onClose={handleCloseSlideOver} 
       />
 
-      <div className="mx-auto max-w-[1400px] px-4 py-12 md:px-8 md:py-24">
+      <div className="mx-auto max-w-[1400px] px-4 py-12 md:px-8 md:py-15">
         
         {/* Editorial Hero Header */}
-        <header className="mb-16 flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
+        <header className="mb-12 flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-semibold tracking-tighter text-white md:text-5xl lg:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               Challenge Library
             </h1>
             <p className="mt-4 text-lg text-zinc-400 leading-relaxed max-w-[50ch]">
@@ -480,7 +480,7 @@ export default function Challenges() {
                 placeholder="Search queries, tags..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl bg-white/[0.02] py-3.5 pl-11 pr-4 text-sm text-white placeholder-zinc-500 ring-1 ring-white/10 transition-all duration-300 focus:bg-white/[0.04] focus:outline-none focus:ring-white/20"
+                className="w-full rounded-2xl bg-[#09090b] py-3.5 pl-11 pr-4 text-sm text-white placeholder-zinc-500 ring-1 ring-white/10 transition-all duration-300 focus:bg-[#1a1a1c] focus:outline-none focus:ring-white/20"
               />
               {searchTerm && (
                 <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-500 hover:text-zinc-300">
@@ -495,7 +495,7 @@ export default function Challenges() {
               <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                 {CATEGORIES.map(cat => (
                   <label key={cat.id} className="group flex cursor-pointer items-center gap-3">
-                    <div className="relative flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.03] ring-1 ring-white/10 transition-all group-hover:bg-white/[0.06]">
+                    <div className="relative flex h-5 w-5 items-center justify-center rounded-md bg-[#09090b] ring-1 ring-white/10 transition-all group-hover:bg-[#1a1a1c]">
                       <input 
                         type="checkbox" 
                         className="peer sr-only"
@@ -525,7 +525,7 @@ export default function Challenges() {
                       className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium capitalize ring-1 transition-all duration-300 ${
                         isSelected 
                           ? 'bg-zinc-100 text-zinc-900 ring-transparent' 
-                          : 'bg-white/[0.02] text-zinc-400 ring-white/10 hover:bg-white/[0.06] hover:text-zinc-200'
+                          : 'bg-[#09090b] text-zinc-400 ring-white/10 hover:bg-[#1a1a1c] hover:text-zinc-200'
                       }`}
                     >
                       {diff}
@@ -542,7 +542,7 @@ export default function Challenges() {
                 <select 
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none rounded-xl bg-white/[0.02] px-4 py-3 text-sm font-medium text-zinc-300 ring-1 ring-white/10 transition-all focus:outline-none focus:ring-white/20"
+                  className="w-full appearance-none rounded-xl bg-[#09090b] px-4 py-3 text-sm font-medium text-zinc-300 ring-1 ring-white/10 transition-all focus:outline-none focus:ring-white/20"
                 >
                   <option value="newest">Newest Added</option>
                   <option value="difficulty">Difficulty Level</option>
@@ -576,7 +576,7 @@ export default function Challenges() {
                 <p className="text-zinc-500 max-w-sm mx-auto leading-relaxed mb-8">
                   We couldn't find any challenges matching your current filters. Adjust your parameters to continue.
                 </p>
-                <button onClick={clearFilters} className="rounded-full bg-white/[0.05] px-6 py-2.5 text-sm font-medium text-zinc-300 ring-1 ring-white/10 transition-all hover:bg-white/[0.1] hover:text-white active:scale-95">
+                <button onClick={clearFilters} className="rounded-full bg-[#09090b] px-6 py-2.5 text-sm font-medium text-zinc-300 ring-1 ring-white/10 transition-all hover:bg-[#1a1a1c] hover:text-white active:scale-95">
                   Reset Parameters
                 </button>
               </div>

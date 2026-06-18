@@ -274,7 +274,7 @@ export const challenges = [
     language: 'javascript',
     estimatedMinutes: 15,
     prompt: `Write a function \`debounce(fn, delay)\` that returns a debounced version of \`fn\`. The debounced function should delay invoking \`fn\` until after \`delay\` milliseconds have elapsed since the last time the debounced function was invoked.`,
-    constraints: ['Must handle \`this\` context and arguments correctly.'],
+    constraints: ['Must handle this context and arguments correctly.'],
     examples: [{ input: 'let d = debounce(console.log, 100); d(1); d(2);', output: 'Logs "2" after 100ms', explanation: 'First call is cancelled.' }],
     testCases: [
       { id: 'tc1', input: 'mock_time_test', expectedOutput: 'true', points: 100 }

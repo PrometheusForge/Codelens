@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Save, GitCompare, Terminal, CheckCircle2, 
   XCircle, Info, ChevronRight, Activity, 

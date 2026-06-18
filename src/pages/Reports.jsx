@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FileText, Download, Copy, Printer, ChevronLeft, 
   ChevronDown, ChevronUp, Calendar, Check, Code2, Loader2
@@ -337,7 +337,7 @@ export default function Reports() {
       <div className="mx-auto max-w-[1200px] px-4 md:px-8">
         
         <header className="mb-12">
-          <h1 className="text-4xl font-semibold tracking-tighter text-white md:text-5xl">
+          <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
             Evaluation Reports
           </h1>
           <p className="mt-4 text-lg text-zinc-400 leading-relaxed max-w-[50ch]">

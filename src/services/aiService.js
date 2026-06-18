@@ -322,8 +322,8 @@ ${challenge.constraints.map(c => `- ${c}`).join('\n')}
 
 // ----- THE ENTERPRISE SIMULATED SANDBOX JUDGE (AEGIS V2) -----
 export const evaluateCodeSubmission = async (challengePrompt, submittedCode, modelId = 'qwen-3-32b') => {
-  const systemPrompt = `You are **Aegis**, a strict, deterministic code execution sandbox and Principal Staff Software Engineer.  
-    You **never** run real code, but you mentally compile, simulate, and rigorously evaluate any submitted code against a given coding challenge.  
+  const systemPrompt = `You are **Aegis**, a strict, deterministic static analysis engine and Principal Staff Software Engineer.  
+    You **never** run real code, but you trace, analyze, and rigorously evaluate any submitted code against a given coding challenge.  
     You **cannot** guess, hallucinate execution traces, or produce conversational output.  
 
     Your sole output is a **single, raw JSON object** following the exact schema below.  
@@ -332,8 +332,7 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     ## ⚠️ STRICT OUTPUT RULES (will be enforced)
 
-    - **First character of your response MUST be \`{\`**  
-    - **No markdown** — no \`\`\`json, no backticks, no explanatory text.  
+    - **First character of your response MUST be \`{\`** - **No markdown** — no \`\`\`json, no backticks, no explanatory text.  
     - **No reasoning traces** — perform all passes silently.  
     - **No extra fields** — follow the schema exactly.  
     - **Violation** → the calling system will reject your response as invalid.
@@ -346,18 +345,18 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
     - Check syntax, imports, undefined variables, type mismatches.  
     - If **any compile error exists** → \`correctness = 0\`, \`passedCount = 0\`, \`score ≤ 15\`.
 
-    ### PASS 2 – Simulated Test Execution (4 predefined cases)
-    Mentally execute the code against **exactly these 4 test cases** (do not substitute):
+    ### PASS 2 – Logical Trace Analysis (4 predefined cases)
+    Trace the code's logic against **exactly these 4 test cases** (do not substitute):
 
     | # | Test Case Name | Input example (if applicable) | Expected behavior |
     |---|----------------|-------------------------------|--------------------|
-    | 1 | **Baseline**   | Normal valid input (provided in challenge) | Correct output |
+    | 1 | **Baseline** | Normal valid input (provided in challenge) | Correct output |
     | 2 | **Null/Empty** | \`null\`, \`[]\`, \`""\`, \`0\` as appropriate | Graceful handling, no crash |
     | 3 | **Performance** | Max constraints (e.g., 10^5 array length) | Completes in reasonable time (O(n) or O(n log n)) |
-    | 4 | **Malformed**   | Wrong type (e.g., string instead of number) | Throws or returns error; does not corrupt state |
+    | 4 | **Malformed** | Wrong type (e.g., string instead of number) | Throws or returns error; does not corrupt state |
 
     Record how many pass (\`passedCount\`).  
-    If code cannot be mentally executed (e.g., external API calls, random, I/O) → \`passedCount = 0\` and \`security ≤ 20\`.
+    If code cannot be traced safely (e.g., external API calls, random, I/O) → \`passedCount = 0\` and \`security ≤ 20\`.
 
     ### PASS 3 – Complexity & Readability
     - **Time & space complexity (Big O)** – compare to optimal for this problem.  
@@ -369,7 +368,7 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
     ### PASS 4 – Security & Robustness
     - Input validation, type checking, boundary guards, exception handling.  
     - **No validation** → \`security ≤ 40\`.  
-    - Unsafe \`eval()\`, \`exec()\`, or injection patterns → \`security = 0\`.
+    - Use of inherently unsafe language functions (e.g., dynamic execution/evaluation) or unescaped data parsing → \`security = 0\`.
 
     ---
 
@@ -377,7 +376,8 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     {
       "score": <Integer 0-100>,
-      "feedback": "<String: one highly technical sentence, no period at end>",
+      "client_facing_feedback": "<String: A 2-sentence explanation using simple analogies.>",
+      "technical_feedback": "<String: one highly technical sentence, no period at end>",
       "metrics": {
         "correctness": <Integer 0-100>,
         "efficiency": <Integer 0-100>,
@@ -402,8 +402,7 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     ## ✅ Example of correct output (for a perfect solution)
 
-    {"score": 96, "feedback": "O(n) time, O(1) space, clean validation, all 4 tests pass", "metrics": {"correctness": 100, "efficiency": 95, "readability": 92, "security": 100, "explanation": 80}, "simulatedExecution": {"passedCount": 4, "totalCount": 4, "estimatedTimeMs": 12}}
-
+    {"score": 96, "client_facing_feedback": "Lightning fast and highly memory efficient! It also includes perfect safety checks, meaning it won't crash even if it receives unexpected or empty data.", "technical_feedback": "O(n) time, O(1) space, clean validation, all 4 tests pass.", "metrics": {"correctness": 100, "efficiency": 95, "readability": 92, "security": 100, "explanation": 80}, "simulatedExecution": {"passedCount": 4, "totalCount": 4, "estimatedTimeMs": 12}}
     ## ❌ Example of WRONG output (do NOT do this)
 
     \`\`\`json
@@ -444,7 +443,7 @@ Execute the multi-pass evaluation and return the JSON payload.`;
 
     const requestBody = {
       model: targetModel,
-      response_format: { type: "json_object" }, 
+      //response_format: { type: "json_object" }, 
       messages: [
         { 
           role: 'system', 
@@ -457,7 +456,7 @@ Execute the multi-pass evaluation and return the JSON payload.`;
         }
       ],
       temperature: 0.1,
-      max_tokens: 1200 // Bumped up slightly from 800 so long feedback doesn't get cut off and break the JSON format
+      max_tokens: 2000
     };
 
     if (targetModel.includes('qwen')) {
@@ -478,14 +477,43 @@ Execute the multi-pass evaluation and return the JSON payload.`;
       throw new Error(`Groq Judge failed: ${JSON.stringify(err.error)}`);
     }
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    
+    // Safely grab the content, defaulting to an empty string if undefined
+    const rawContent = data.choices[0].message?.content || "";
+
+    // 1. Log the exact output to your browser's Developer Console
+    console.log("=== RAW LLM JUDGE OUTPUT ===");
+    console.log(rawContent);
+    console.log("============================");
+
+    const jsonStart = rawContent.indexOf('{');
+    const jsonEnd = rawContent.lastIndexOf('}');
+
+    // 2. If no JSON brackets exist, push the LLM's excuse to the UI
+    if (jsonStart === -1 || jsonEnd === -1) {
+      const snippet = rawContent.trim() 
+        ? rawContent.substring(0, 80) + "..." 
+        : "Empty response from Groq API.";
+      throw new Error(`No JSON generated. Model said: "${snippet}"`);
+    }
+
+    const cleanJsonString = rawContent.substring(jsonStart, jsonEnd + 1);
+
+    // 3. Catch actual parsing errors if the JSON is malformed
+    try {
+      return JSON.parse(cleanJsonString);
+    } catch (parseError) {
+      console.error("JSON Parsing failed on this string:", cleanJsonString);
+      throw new Error("Model returned broken JSON (check browser console for details).");
+    }
     
   } catch (error) {
     console.error("Judge routing error:", error);
     // Bulletproof fallback so the UI never crashes if the API throttles
     return { 
       score: 0, 
-      feedback: `API Error: ${error.message}. Please retry evaluation.`,
+      client_facing_feedback: `API Error: ${error.message}. Please retry evaluation.`,
+      technical_feedback: "Failed to generate evaluation.",
       metrics: { correctness: 0, efficiency: 0, readability: 0, security: 0, explanation: 0 },
       simulatedExecution: { passedCount: 0, totalCount: 4, estimatedTimeMs: 0 }
     };

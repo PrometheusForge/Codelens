@@ -1,9 +1,7 @@
-import React from 'react';
 import { Activity, Target } from 'lucide-react';
 import StatsRow from '../components/dashboard/StatsRow';
 import Leaderboard from '../components/dashboard/Leaderboard';
 import RadarChart from '../components/dashboard/RadarChart';
-// --- ADD THE TWO NEW IMPORTS HERE ---
 import TrendChart from '../components/dashboard/TrendChart';
 import HeatmapGrid from '../components/dashboard/HeatmapGrid';
 
@@ -12,10 +10,9 @@ export default function Dashboard() {
     <div className="min-h-[100dvh] bg-[#09090b] text-zinc-100 selection:bg-zinc-800 py-12 md:py-24 overflow-x-hidden">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         
-        {/* Editorial Header */}
         <header className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-semibold tracking-tighter text-white md:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               Telemetry & Rankings
             </h1>
             <p className="mt-4 text-lg text-zinc-400 leading-relaxed">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Crown, Download, Code2, LayoutGrid, 
   CheckCircle2, XCircle, Clock, Check,

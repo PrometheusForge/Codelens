@@ -24,11 +24,23 @@ const truncatePrompt = (prompt) => {
 };
 
 const HeatmapCell = ({ data, modelName }) => {
+  // 1. Introduce React State to track hover
+  const [isHovered, setIsHovered] = useState(false);
+  
   const { score, correctness, efficiency } = data || {};
   const isEvaluated = score !== null && score !== undefined;
   
   return (
-    <div className="relative group cursor-pointer w-full h-10 rounded-md transition-all duration-300 hover:scale-[1.05] hover:z-20">
+    <div 
+      className="relative cursor-pointer w-full h-10 rounded-md transition-all duration-300"
+      // 2. Dynamically force the z-index and scale to override the Grid stacking context
+      style={{ 
+        zIndex: isHovered ? 50 : 1,
+        transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       
       {/* Visual Cell */}
       <div className={`w-full h-full rounded-md flex items-center justify-center font-mono text-xs font-bold transition-colors ${getCellStyles(score)}`}>
@@ -36,7 +48,13 @@ const HeatmapCell = ({ data, modelName }) => {
       </div>
 
       {/* Hover Tooltip (Double-Bezel Architecture) */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 opacity-0 scale-95 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-hover:scale-100 z-50">
+      <div 
+        // 3. Swap Tailwind 'group-hover' for a state-driven template literal. 
+        // Added 'visible/invisible' to prevent hidden elements from eating mouse clicks.
+        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-56 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isHovered ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
+        }`}
+      >
         <div className="rounded-xl bg-white/[0.02] p-1 ring-1 ring-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-xl">
           <div className="rounded-lg bg-zinc-950 p-4 ring-1 ring-white/5 flex flex-col gap-3">
             
@@ -87,6 +105,8 @@ export default function HeatmapGrid() {
   const [heatmapData, setHeatmapData] = useState([]);
   const [activeModels, setActiveModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isShowingAll, setIsShowingAll] = useState(false);
+  const INITIAL_RECORD_LIMIT = 10;
 
   useEffect(() => {
     let isMounted = true;
@@ -207,9 +227,10 @@ export default function HeatmapGrid() {
       </div>
 
       {/* Double Bezel Container */}
-      <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5 overflow-hidden">
-        <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] p-6 ring-1 ring-white/5 overflow-x-auto custom-scrollbar">
-          
+      <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
+        {/* FIX: Changed pt-32 to pt-6 to remove the massive gap */}
+        <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] px-6 pb-6 pt-6 ring-1 ring-white/5 overflow-x-auto custom-scrollbar">
+                
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3 text-zinc-500">
               <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
@@ -220,7 +241,6 @@ export default function HeatmapGrid() {
               No Challenge Data Available
             </div>
           ) : (
-            /* CSS Grid Implementation dynamically sized based on active models */
             <div 
               className="min-w-[700px] grid gap-x-2 gap-y-1"
               style={{ gridTemplateColumns: `240px repeat(${activeModels.length}, minmax(80px, 1fr))` }}
@@ -241,51 +261,71 @@ export default function HeatmapGrid() {
               </div>
 
               {/* Matrix Body */}
-              {heatmapData.map((categoryBlock, catIdx) => (
-                <React.Fragment key={catIdx}>
-                  
-                  {/* Category Divider */}
-                  <div className="mt-4 mb-2 first:mt-0" style={{ gridColumn: `1 / -1` }}>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                        {categoryBlock.category}
-                      </span>
-                      <div className="h-px flex-1 bg-white/5" />
-                    </div>
-                  </div>
+              {heatmapData.map((categoryBlock, catIdx) => {
+                // NEW: Logic to slice the array to 10 items if not showing all
+                const visibleChallenges = isShowingAll 
+                  ? categoryBlock.challenges 
+                  : categoryBlock.challenges.slice(0, INITIAL_RECORD_LIMIT);
+                
+                const hasHiddenRecords = categoryBlock.challenges.length > INITIAL_RECORD_LIMIT;
 
-                  {/* Challenge Rows */}
-                  {categoryBlock.challenges.map((challenge, chalIdx) => (
-                    <React.Fragment key={`${catIdx}-${chalIdx}`}>
-                      
-                      {/* Challenge Title (Y-Axis) */}
-                      <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
-                        <span className="truncate cursor-help" title={challenge.fullPrompt}>
-                          {challenge.name}
+                return (
+                  <React.Fragment key={catIdx}>
+                    
+                    {/* Category Divider */}
+                    <div className="mt-4 mb-2 first:mt-0" style={{ gridColumn: `1 / -1` }}>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                          {categoryBlock.category}
                         </span>
+                        <div className="h-px flex-1 bg-white/5" />
                       </div>
+                    </div>
 
-                      {/* Data Cells (X-Axis) */}
-                      <div 
-                        className="grid gap-2" 
-                        style={{ gridTemplateColumns: `repeat(${activeModels.length}, 1fr)`, gridColumnEnd: `span ${activeModels.length}` }}
-                      >
-                        {challenge.results.map((result, resIdx) => (
-                          <HeatmapCell 
-                            key={resIdx} 
-                            data={result} 
-                            modelName={activeModels[resIdx]?.label} 
-                          />
-                        ))}
+                    {/* Challenge Rows (Now using visibleChallenges) */}
+                    {visibleChallenges.map((challenge, chalIdx) => (
+                      <React.Fragment key={`${catIdx}-${chalIdx}`}>
+                        
+                        {/* Challenge Title (Y-Axis) */}
+                        <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
+                          <span className="truncate" title={challenge.fullPrompt}>
+                            {challenge.name}
+                          </span>
+                        </div>
+
+                        {/* Data Cells (X-Axis) */}
+                        <div 
+                          className="grid gap-2" 
+                          style={{ gridTemplateColumns: `repeat(${activeModels.length}, 1fr)`, gridColumnEnd: `span ${activeModels.length}` }}
+                        >
+                          {challenge.results.map((result, resIdx) => (
+                            <HeatmapCell 
+                              key={resIdx} 
+                              data={result} 
+                              modelName={activeModels[resIdx]?.label} 
+                            />
+                          ))}
+                        </div>
+                      </React.Fragment>
+                    ))}
+
+                    {/* NEW: Show More Button */}
+                    {hasHiddenRecords && !isShowingAll && (
+                      <div className="mt-8 mb-2 flex justify-center" style={{ gridColumn: `1 / -1` }}>
+                        <button 
+                          onClick={() => setIsShowingAll(true)}
+                          className="px-6 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors border border-white/10"
+                        >
+                          Show {categoryBlock.challenges.length - INITIAL_RECORD_LIMIT} More Records
+                        </button>
                       </div>
-                    </React.Fragment>
-                  ))}
-                </React.Fragment>
-              ))}
-
+                    )}
+                    
+                  </React.Fragment>
+                );
+              })}
             </div>
           )}
-
         </div>
       </div>
     </div>

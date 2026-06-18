@@ -214,7 +214,7 @@ export default function Arena() {
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             
             <label className="block text-sm font-medium text-zinc-400 mb-3">1. Select Competitors</label>
-            <div className="space-y-2 mb-8">
+            <div className="mb-5">
               {MODEL_REGISTRY.map(model => (
                 <label key={model.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.02] cursor-pointer ring-1 ring-transparent hover:ring-white/5 transition-all">
                   <div className="relative flex items-center justify-center">
@@ -238,7 +238,7 @@ export default function Arena() {
             <textarea 
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full h-48 bg-[#0c0c0e] border border-white/10 rounded-xl p-4 text-sm text-zinc-300 outline-none focus:ring-2 focus:ring-indigo-500 resize-none mb-6"
+              className="w-full h-30 bg-[#0c0c0e] border border-white/10 rounded-xl p-4 text-sm text-zinc-300 outline-none focus:ring-2 focus:ring-indigo-500 resize-none mb-2"
               placeholder="Paste a coding problem here to broadcast to all selected models..."
             />
 

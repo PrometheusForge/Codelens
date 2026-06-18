@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Activity, Cpu, Layers, Target, 
   TrendingUp, TrendingDown, Crown, 
