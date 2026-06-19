@@ -421,7 +421,7 @@ export const evaluateCodeSubmission = async (challenge, submittedCode, modelId =
     const groqModelMap = {
       'llama-3-70b': 'llama-3.3-70b-versatile',
       'gemma-2-9b': 'llama-3.1-8b-instant',
-      'qwen-3-32b': 'qwen/qwen-32b-chat' 
+      'qwen-3-32b': 'qwen/qwen3-32b' 
     };
     
     const targetModel = groqModelMap[modelId] || 'llama-3.3-70b-versatile';
@@ -446,7 +446,7 @@ export const evaluateCodeSubmission = async (challenge, submittedCode, modelId =
       requestBody.reasoning_format = 'hidden';
     }
 
-    const response = await fetch('[https://api.groq.com/openai/v1/chat/completions](https://api.groq.com/openai/v1/chat/completions)', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
