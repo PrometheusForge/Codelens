@@ -282,7 +282,6 @@ export default function Reports() {
               </div>
             </section>
 
-            {/* Editable Conclusions */}
             <section>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-4 print:text-zinc-800">
                 Final Conclusion & Human Notes

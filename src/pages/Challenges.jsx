@@ -16,7 +16,6 @@ const useAppStore = create((set) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
 }));
 
-// --- MOCK DATA SEED (Enriched for Slide-Over) ---
 const CATEGORIES = [
   { id: 'algorithms', label: 'Algorithms', icon: Cpu },
   { id: 'data-structures', label: 'Data Structures', icon: Database },
@@ -28,7 +27,6 @@ const CATEGORIES = [
 
 const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'];
 
-// MOCK PAST RESULTS
 const MOCK_PAST_RESULTS = [
   { id: 1, model: 'Llama 3 70B', score: 95, time: '2 hours ago', success: true },
   { id: 2, model: 'Gemini 1.5 Flash', score: 100, time: '5 hours ago', success: true },
@@ -59,7 +57,6 @@ const Badge = ({ children, className = '' }) => (
   </span>
 );
 
-// Slide-Over Component
 const SlideOver = ({ challenge, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [showAllTests, setShowAllTests] = useState(false);
@@ -299,7 +296,6 @@ const SlideOver = ({ challenge, isOpen, onClose }) => {
   );
 };
 
-// Challenge Card Component
 const ChallengeCard = ({ challenge, viewMode, onSelect }) => {
   const isList = viewMode === 'list';
 

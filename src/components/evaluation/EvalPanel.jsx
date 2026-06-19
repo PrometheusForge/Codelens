@@ -29,6 +29,23 @@ const DIMENSIONS = [
   { id: 'explanation', label: 'Explanation', desc: 'Did the model clearly explain its approach, constraints, and complexity analysis?' }
 ];
 
+// --- TOOLTIPS FOR EVERYDAY USERS ---
+export const COMPLEXITY_TOOLTIPS = {
+  timeComplexity: {
+    title: "Time Complexity (Speed & Scaling)",
+    description: "This doesn't measure seconds; it measures how many extra steps the code takes when given more work. Think of it like reading: if it takes 1 minute to read 1 page, how long does it take to read 100 pages? This measures how fast the workload scales."
+  },
+  spaceComplexity: {
+    title: "Space Complexity (Memory)",
+    description: "This measures how much 'desk space' (computer memory) the code needs to finish the job. If you sort a deck of cards, do you just use your hands (low space), or lay all 52 cards across a massive table (high space)?"
+  },
+  grades: {
+    "O(1)": "O(1) — The Flat Rate (Perfect). No matter how much data you throw at it, it takes the exact same amount of time and memory. Like looking at the top item in a box.",
+    "O(n)": "O(n) — The Per-Item Rate (Good). The work scales evenly with the data. 10 items take 10 steps. 100 items take 100 steps. Like reading a book page by page.",
+    "O(n²)": "O(n²) — The Snowball Effect (Warning). For every new piece of data, the work multiplies. 10 items take 100 steps; 1,000 items take 1,000,000 steps. The code might freeze on large data."
+  }
+};
+
 const getScoreColors = (score) => {
   if (score >= 80) return { text: 'text-emerald-400', bg: 'bg-emerald-400/10', fill: 'bg-emerald-500', ring: 'ring-emerald-400/20' };
   if (score >= 60) return { text: 'text-amber-400', bg: 'bg-amber-400/10', fill: 'bg-amber-500', ring: 'ring-amber-400/20' };
@@ -82,10 +99,10 @@ const ScoreSlider = ({ dimension, value, onChange }) => {
   );
 };
 
-//Main Panel Component
+//Main Panel
 export default function EvalPanel() {
   const [scores, setScores] = useState(MOCK_EVAL_DATA.initialScores);
-  const [saveStatus, setSaveStatus] = useState('idle'); // idle | loading | success
+  const [saveStatus, setSaveStatus] = useState('idle');
 
   const totalScore = useMemo(() => {
     const vals = Object.values(scores);
@@ -131,13 +148,11 @@ export default function EvalPanel() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT COLUMN: AI Output & Code */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             
             <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
               <div className="rounded-[calc(2rem-0.375rem)] bg-[#0c0c0e] ring-1 ring-white/5 overflow-hidden flex flex-col shadow-2xl">
                 
-                {/* Editor Header */}
                 <div className="flex items-center justify-between border-b border-white/5 bg-black/40 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Cpu className="w-4 h-4 text-zinc-500" />
@@ -149,14 +164,12 @@ export default function EvalPanel() {
                   </div>
                 </div>
 
-                {/* Simulated Markdown / Code Content */}
                 <div className="p-8 overflow-y-auto max-h-[800px] flex flex-col gap-6 scrollbar-thin scrollbar-thumb-white/10">
                   
                   <p className="text-sm text-zinc-300 leading-relaxed">
                     To solve the <strong className="text-white font-medium">Two Sum</strong> problem optimally, we can use a Hash Map to store the values we have seen so far along with their indices. This allows us to achieve <code className="bg-white/10 px-1.5 py-0.5 rounded text-emerald-300">O(n)</code> time complexity.
                   </p>
 
-                  {/* Syntax Highlighted Code Mock */}
                   <div className="rounded-xl bg-black/60 p-5 ring-1 ring-white/5 font-mono text-sm leading-loose overflow-x-auto">
                     <pre>
                       <span className="text-rose-400">function</span> <span className="text-blue-400">twoSum</span>(nums, target) {'{\n'}
@@ -183,10 +196,8 @@ export default function EvalPanel() {
             </div>
           </div>
 
-          {/* Right Column - Scoring Form */}
           <div className="lg:col-span-5 flex flex-col gap-6 sticky top-8">
             
-            {/* Live Grade Card */}
             <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
               <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-6 ring-1 ring-white/5 flex items-center justify-between">
                 <div>
@@ -199,14 +210,12 @@ export default function EvalPanel() {
                   </div>
                 </div>
                 
-                {/* Massive Letter Grade Badge */}
                 <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${totalColors.bg} ${totalColors.ring} ring-1`}>
                   <span className={`text-3xl font-black ${totalColors.text}`}>{letterGrade}</span>
                 </div>
               </div>
             </div>
 
-            {/* Test Results Recap */}
             <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
               <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-6 ring-1 ring-white/5 space-y-4">
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2">
@@ -230,7 +239,6 @@ export default function EvalPanel() {
               </div>
             </div>
 
-            {/* Dimension Sliders */}
             <div className="rounded-[2rem] bg-white/[0.02] p-1.5 ring-1 ring-white/5">
               <div className="rounded-[calc(2rem-0.375rem)] bg-zinc-950/50 p-8 ring-1 ring-white/5 space-y-8">
                 <div className="flex items-center justify-between">

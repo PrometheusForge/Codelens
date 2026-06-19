@@ -22,7 +22,7 @@ export const extractCode = (aiResponse) => {
     return indentedLines.map(l => l.slice(4)).join('\n');
   }
   
-  return ''; // Could not extract code
+  return '';
 };
 
 export const detectLanguage = (code) => {
@@ -30,5 +30,5 @@ export const detectLanguage = (code) => {
   if (/function\s+\w+|const\s+\w+|let\s+\w+|=>/.test(code)) return 'javascript';
   if (/public\s+class|System\.out/.test(code)) return 'java';
   if (/func\s+\w+|fmt\.Println/.test(code)) return 'go';
-  return 'javascript'; // default
+  return 'javascript';
 };

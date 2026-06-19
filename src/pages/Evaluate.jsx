@@ -20,7 +20,6 @@ export default function Evaluate() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [result, setResult] = useState(null);
 
-  // Checks for a Challenge Card first then falls back to typed prompt
   const activePrompt = location.state?.challengePrompt || customPrompt;
 
   const clearChallengeContext = () => {
@@ -88,7 +87,7 @@ export default function Evaluate() {
 
       let rawFeedback = evaluation.client_facing_feedback || evaluation.feedback || evaluation.technical_feedback || "";
      
-      let cleanFeedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : ""; // Ensure it's a string
+      let cleanFeedback = typeof rawFeedback === 'string' ? rawFeedback.trim() : "";
       
       setResult({ 
         status: 'success', 
@@ -120,7 +119,6 @@ export default function Evaluate() {
         <div className="space-y-6">
           
           {location.state?.challengePrompt ? (
-            // Challenge Card Green Banner
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg relative">
               <button 
                 onClick={clearChallengeContext}
@@ -138,7 +136,7 @@ export default function Evaluate() {
               </p>
             </div>
           ) : (
-            // Free Play Mode: Text Box
+
             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
               <label className="flex items-center gap-2 text-sm font-medium text-zinc-400 mb-2">
                 <FileText className="w-4 h-4" /> Challenge Prompt
@@ -208,7 +206,6 @@ export default function Evaluate() {
               )}
               <h3 className="text-4xl font-bold text-white mb-2">Score: {result.score}</h3>
               
-              {/* Styled feedback container */}
               <div className="bg-[#0c0c0e] border border-white/10 rounded-lg p-4 mt-4">
                 <h4 className="text-sm font-bold text-emerald-400 mb-2 uppercase tracking-wider">Evaluation Feedback</h4>
                 <p className="text-zinc-300 text-sm leading-relaxed">{result.feedback}</p>

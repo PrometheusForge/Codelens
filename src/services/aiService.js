@@ -309,17 +309,35 @@ ${challenge.constraints.map(c => `- ${c}`).join('\n')}
 **Write your solution in ${challenge.language}.**`;
 };
 
-export const evaluateCodeSubmission = async (challengePrompt, submittedCode, modelId = 'qwen-3-32b') => {
+export const formatEvaluationContext = (challenge, submittedCode) => {
+  return `
+    --- CHALLENGE DEFINITION ---
+    Title: ${challenge.title || 'Unknown'}
+    Category: ${challenge.category || 'General'}
+    Difficulty: ${challenge.difficulty || 'Unknown'}
+
+    --- EXPLICIT REQUIREMENTS ---
+    ${challenge.prompt}
+
+    --- DOMAIN-SPECIFIC EVALUATION LAWS ---
+    ${challenge.evaluationCriteria || "Use standard software engineering best practices for this domain."}
+
+    --- GOLDEN REFERENCE SOLUTION (The Standard) ---
+    ${challenge.referenceSolution || "Evaluate against the optimal, industry-standard approach for this problem."}
+
+    --- USER SUBMISSION TO JUDGE ---
+    ${submittedCode}
+  `;
+};
+
+export const evaluateCodeSubmission = async (challenge, submittedCode, modelId = 'qwen-3-32b') => {
   const systemPrompt = `You are **Aegis**, a strict, deterministic static analysis engine and Principal Staff Software Engineer.  
     You **never** run real code, but you trace, analyze, and rigorously evaluate any submitted code against a given coding challenge.  
     You **cannot** guess, hallucinate execution traces, or produce conversational output.  
 
-    Your sole output is a **single, raw JSON object** following the exact schema below.  
-
     ---
 
     ## ⚠️ STRICT OUTPUT RULES (will be enforced)
-
     - **First character of your response MUST be \`{\`** - **No markdown** — no \`\`\`json, no backticks, no explanatory text.  
     - **No reasoning traces** — perform all passes silently.  
     - **No extra fields** — follow the schema exactly.  
@@ -327,36 +345,38 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     ---
 
+    ## ⚖️ THE EVALUATION STANDARD
+    1. DO NOT invent your own architectural preferences.
+    2. Read the "DOMAIN-SPECIFIC EVALUATION LAWS" in the prompt. This is your ultimate legal framework for what constitutes "good" code for this specific category.
+    3. Read the "GOLDEN REFERENCE SOLUTION". You must use this as the baseline anchor for comparing logic and efficiency.
+
+    ---
+
     ## 🧠 Multi‑Pass Mental Evaluation (execute in order, never output)
+
+    ### PASS 0 – Dependency & Requirement Mapping (The strict bouncer)
+    - Parse the explicit requirements. Does the submitted code define the exact required function name? Does it accept the right parameters? Does it violate constraints?
+    - If ANY mapping check fails, set \`correctness = 0\` and immediately halt evaluation.
 
     ### PASS 1 – Compilation & Static Analysis
     - Check syntax, imports, undefined variables, type mismatches.  
     - If **any compile error exists** → \`correctness = 0\`, \`passedCount = 0\`, \`score ≤ 15\`.
 
     ### PASS 2 – Logical Trace Analysis (4 predefined cases)
-    Trace the code's logic against **exactly these 4 test cases** (do not substitute):
+    Trace the code's logic against **exactly these 4 test cases**:
 
-    | # | Test Case Name | Input example (if applicable) | Expected behavior |
-    |---|----------------|-------------------------------|--------------------|
-    | 1 | **Baseline** | Normal valid input (provided in challenge) | Correct output |
-    | 2 | **Null/Empty** | \`null\`, \`[]\`, \`""\`, \`0\` as appropriate | Graceful handling, no crash |
-    | 3 | **Performance** | Max constraints (e.g., 10^5 array length) | Completes in reasonable time (O(n) or O(n log n)) |
-    | 4 | **Malformed** | Wrong type (e.g., string instead of number) | Throws or returns error; does not corrupt state |
+    | # | Test Case Name | Input example | Expected behavior |
+    |---|----------------|---------------|--------------------|
+    | 1 | **Baseline** | Normal valid input | Correct output |
+    | 2 | **Null/Empty** | \`null\`, \`[]\`, \`""\` | Graceful handling, no crash |
+    | 3 | **Performance**| Max constraints | Completes in optimal Big O time |
+    | 4 | **Malformed** | Wrong type | Throws/returns error cleanly |
 
     Record how many pass (\`passedCount\`).  
-    If code cannot be traced safely (e.g., external API calls, random, I/O) → \`passedCount = 0\` and \`security ≤ 20\`.
 
-    ### PASS 3 – Complexity & Readability
-    - **Time & space complexity (Big O)** – compare to optimal for this problem.  
-      - If code is O(n²) but O(n) exists → \`efficiency ≤ 50\`.  
-    - **Readability** – naming, modularity, DRY, indentation.  
-      - No comments/docstrings → \`explanation ≤ 30\`.  
-    - **Memory** – unnecessary copies or leaks (mental model) penalize efficiency.
-
-    ### PASS 4 – Security & Robustness
-    - Input validation, type checking, boundary guards, exception handling.  
-    - **No validation** → \`security ≤ 40\`.  
-    - Use of inherently unsafe language functions (e.g., dynamic execution/evaluation) or unescaped data parsing → \`security = 0\`.
+    ### PASS 3 & 4 – Expert Comparison & Security
+    - **Efficiency & Readability:** Compare the user's code against the GOLDEN REFERENCE. If the user's code achieves the same result but is vastly more complex, deeply nested, or violates the Domain Laws, heavily penalize.
+    - **Security:** Scan for injection risks, unescaped data parsing, or use of inherently unsafe functions (e.g., dynamic execution/eval). No validation → \`security ≤ 40\`. Use of eval → \`security = 0\`.
 
     ---
 
@@ -364,8 +384,8 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     {
       "score": <Integer 0-100>,
-      "client_facing_feedback": "<String: A 2-sentence explanation using simple analogies.>",
-      "technical_feedback": "<String: one highly technical sentence, no period at end>",
+      "client_facing_feedback": "<String: A 2-sentence explanation. CRITICAL: You must use simple, everyday analogies. Do not use terms like O(n) or 'Time Complexity' without explaining it using everyday concepts like 'scaling evenly' or 'the snowball effect'.>",
+      "technical_feedback": "<String: one highly technical sentence for senior engineers, no period at end>",
       "metrics": {
         "correctness": <Integer 0-100>,
         "efficiency": <Integer 0-100>,
@@ -382,56 +402,32 @@ export const evaluateCodeSubmission = async (challengePrompt, submittedCode, mod
 
     ### Weighted score formula (apply internally):
     \`score = (correctness * 0.6) + (efficiency * 0.2) + (readability * 0.05) + (security * 0.1) + (explanation * 0.05)\`
-
     - **If \`correctness == 0\` → \`score = min(score, 15)\`** (massive penalty for broken code).  
-    - All metrics **must be 0–100 integers**.
-
-    ---
-
-    ## ✅ Example of correct output (for a perfect solution)
-
-    {"score": 96, "client_facing_feedback": "Lightning fast and highly memory efficient! It also includes perfect safety checks, meaning it won't crash even if it receives unexpected or empty data.", "technical_feedback": "O(n) time, O(1) space, clean validation, all 4 tests pass.", "metrics": {"correctness": 100, "efficiency": 95, "readability": 92, "security": 100, "explanation": 80}, "simulatedExecution": {"passedCount": 4, "totalCount": 4, "estimatedTimeMs": 12}}
-    ## ❌ Example of WRONG output (do NOT do this)
-
-    \`\`\`json
-    {
-      "score": 85
-    }
-    \`\`\`
 
     ---
 
     ## 🔁 Final self‑check before output
-
     - Is the first character \`{\` ?  
     - Are there any backticks or markdown? → if yes, restart.  
     - Is \`passedCount\` ≤ \`totalCount\`?  
     - Are all metrics between 0 and 100?  
-    - Is \`estimatedTimeMs\` ≥ 1 and ≤ 500?  
 
     If any check fails, **correct silently** before outputting.
   `;
 
-  const userPrompt = `--- CHALLENGE PROMPT ---
-${challengePrompt}
-
---- SUBMITTED CODE ---
-${submittedCode}
-
-Execute the multi-pass evaluation and return the JSON payload.`;
+  const userPrompt = formatEvaluationContext(challenge, submittedCode);
 
   try {
     const groqModelMap = {
       'llama-3-70b': 'llama-3.3-70b-versatile',
       'gemma-2-9b': 'llama-3.1-8b-instant',
-      'qwen-3-32b': 'qwen/qwen3-32b' 
+      'qwen-3-32b': 'qwen/qwen-32b-chat' 
     };
     
     const targetModel = groqModelMap[modelId] || 'llama-3.3-70b-versatile';
 
     const requestBody = {
       model: targetModel,
-      //response_format: { type: "json_object" }, 
       messages: [
         { 
           role: 'system', 
@@ -450,7 +446,7 @@ Execute the multi-pass evaluation and return the JSON payload.`;
       requestBody.reasoning_format = 'hidden';
     }
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('[https://api.groq.com/openai/v1/chat/completions](https://api.groq.com/openai/v1/chat/completions)', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
@@ -467,17 +463,11 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     
     const rawContent = data.choices[0].message?.content || "";
 
-    console.log("=== RAW LLM JUDGE OUTPUT ===");
-    console.log(rawContent);
-    console.log("============================");
-
     const jsonStart = rawContent.indexOf('{');
     const jsonEnd = rawContent.lastIndexOf('}');
 
     if (jsonStart === -1 || jsonEnd === -1) {
-      const snippet = rawContent.trim() 
-        ? rawContent.substring(0, 80) + "..." 
-        : "Empty response from Groq API.";
+      const snippet = rawContent.trim() ? rawContent.substring(0, 80) + "..." : "Empty response from Groq API.";
       throw new Error(`No JSON generated. Model said: "${snippet}"`);
     }
 
@@ -486,7 +476,6 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     try {
       return JSON.parse(cleanJsonString);
     } catch (parseError) {
-      console.error("JSON Parsing failed...");
       throw new Error("Model returned broken JSON.", { cause: parseError });
     }
     
@@ -495,7 +484,7 @@ Execute the multi-pass evaluation and return the JSON payload.`;
     return { 
       score: 0, 
       client_facing_feedback: `API Error: ${error.message}. Please retry evaluation.`,
-      technical_feedback: "Failed to generate evaluation.",
+      technical_feedback: "Failed to generate evaluation due to server or parsing error.",
       metrics: { correctness: 0, efficiency: 0, readability: 0, security: 0, explanation: 0 },
       simulatedExecution: { passedCount: 0, totalCount: 4, estimatedTimeMs: 0 }
     };
