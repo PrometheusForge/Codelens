@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, Target, Zap, Loader2 } from 'lucide-react';
+import { LayoutGrid, Target, Zap, Loader2, Copy, Check } from 'lucide-react'; // Added Copy & Check
+import { Link } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 import { MODEL_REGISTRY } from '../../services/aiService';
 
@@ -88,6 +89,42 @@ const HeatmapCell = ({ data, modelName }) => {
   );
 };
 
+const ChallengeRowLabel = ({ challenge }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(challenge.fullPrompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="group flex items-center justify-between pr-4 relative min-w-0">
+      <Link 
+        to={`/challenges?id=${challenge.id}`} 
+        className="text-sm font-medium text-zinc-300 hover:text-indigo-400 transition-colors truncate pr-8"
+        title={challenge.fullPrompt}
+      >
+        {challenge.name}
+      </Link>
+
+      <button 
+        onClick={handleCopy}
+        className={`absolute right-4 p-1 rounded transition-all duration-200 ${
+          copied 
+            ? 'opacity-100 text-emerald-400' 
+            : 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-white hover:bg-white/10'
+        }`}
+        title="Copy Prompt"
+      >
+        {copied ? <Check size={14} /> : <Copy size={14} />}
+      </button>
+    </div>
+  );
+};
+
 export default function HeatmapGrid() {
   const [heatmapData, setHeatmapData] = useState([]);
   const [activeModels, setActiveModels] = useState([]);
@@ -104,7 +141,8 @@ export default function HeatmapGrid() {
         
         const { data, error } = await supabase
           .from('evaluations')
-          .select('model_id, challenge_prompt, weighted_total, correctness, efficiency')
+          // We ask for the challenge_id through the foreign key relationship to ai_responses
+          .select('ai_responses(challenge_id), model_id, challenge_prompt, weighted_total, correctness, efficiency')
           .not('challenge_prompt', 'is', null);
 
         if (error) throw error;
@@ -128,7 +166,9 @@ export default function HeatmapGrid() {
           if (!prompt || !model) return;
 
           if (!challengesMap[prompt]) {
-            challengesMap[prompt] = {};
+            // Safely extract the ID from the joined table, or default to null
+            const extractedId = row.ai_responses?.challenge_id || null;
+            challengesMap[prompt] = { id: extractedId };
           }
           
           // Average score for multiple evaluations of the same model on the same prompt
@@ -155,6 +195,7 @@ export default function HeatmapGrid() {
           });
 
           return { 
+            id: challengesMap[prompt].id,
             name: truncatePrompt(prompt), 
             fullPrompt: prompt, 
             results 
@@ -263,11 +304,10 @@ export default function HeatmapGrid() {
                     {/* Challenge Rows*/}
                     {visibleChallenges.map((challenge, chalIdx) => (
                       <React.Fragment key={`${catIdx}-${chalIdx}`}>
-                        <div className="flex items-center text-sm font-medium text-zinc-300 pr-4">
-                          <span className="truncate" title={challenge.fullPrompt}>
-                            {challenge.name}
-                          </span>
-                        </div>
+                        
+                        {/* Replaced static text with the new interactive component */}
+                        <ChallengeRowLabel challenge={challenge} />
+
                         {/* Data Cells*/}
                         <div 
                           className="grid gap-2" 
@@ -284,15 +324,24 @@ export default function HeatmapGrid() {
                       </React.Fragment>
                     ))}
 
-                    {/* Show More Button */}
-                    {hasHiddenRecords && !isShowingAll && (
+                    {/* Expand / Collapse Button */}
+                    {hasHiddenRecords && (
                       <div className="mt-8 mb-2 flex justify-center" style={{ gridColumn: `1 / -1` }}>
-                        <button 
-                          onClick={() => setIsShowingAll(true)}
-                          className="px-6 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors border border-white/10"
-                        >
-                          Show {categoryBlock.challenges.length - INITIAL_RECORD_LIMIT} More Records
-                        </button>
+                        {!isShowingAll ? (
+                          <button 
+                            onClick={() => setIsShowingAll(true)}
+                            className="px-6 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors border border-white/10"
+                          >
+                            Show {categoryBlock.challenges.length - INITIAL_RECORD_LIMIT} More Records
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => setIsShowingAll(false)}
+                            className="px-6 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-zinc-300 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors border border-white/10"
+                          >
+                            Show Less
+                          </button>
+                        )}
                       </div>
                     )} 
                   </React.Fragment>

@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 SCRSHS
+.github
 dist
 dist-ssr
 *.local
