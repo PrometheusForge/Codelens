@@ -1,6 +1,6 @@
 # 🔎 Codelens: AI Model Evaluation & Benchmarking Matrix
 
-### Live Page: https://prometheusforge.github.io/Codelens
+### Live Page: https://codelens-pink.vercel.app/
 
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
