@@ -8,40 +8,71 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-181818?style=flat&logo=supabase&logoColor=3ECF8E)
 
-## 🎯 The Problem
-As Large Language Models proliferate, organizations lack standardized, internal tooling to empirically measure model correctness and efficiency for specific coding challenges. Relying on subjective testing leads to inconsistent deployments.
+Built as a response to the AI annotation job market — instead of rating model outputs inside someone else's closed platform, I built my own. CodeLens runs coding challenges against multiple AI models, routes the outputs to a separate judge LLM for blind scoring, and tracks every result in Supabase. The dashboard visualizes real evaluation data, not placeholder numbers.
 
-## 💡 The Solution: Codelens
-Codelens is a high-performance, React-based dashboard engineered to administer automated coding challenges to leading LLMs (Llama 3, Cohere, etc.) and rigorously track their outputs. It provides an empirical, data-driven arena for comparing AI performance over longitudinal timeframes. 
+## What It Does
 
-## 🏗️ System Architecture & Technical Highlights
+* **Challenge library:** Evaluate models without copy-pasting. Clicking any challenge in the library opens the evaluation page with the prompt pre-loaded. One click to start a run.
+* **Arena mode:** Pick a challenge, select multiple models, and run them in parallel. Results come back side-by-side using the same challenge and same rubric for direct, comparable scores.
+* **LLM-as-judge:** The model solving the challenge is not the model scoring it. A separate judge receives the output cold—with no system context about which model produced it—and grades it across four dimensions. This prevents models from inflating their own correctness scores.
+* **Live Supabase Dashboard:** Every evaluation writes to a Postgres database. The five dashboard components (stats row, leaderboard, radar chart, heatmap, and trend line) all pull live from these records. No mock data.
 
-This project demonstrates proficiency in modern full-stack development, API integration, and automated deployments:
+## Tech Stack
 
-* **State Management & Routing:** Utilizes React 18 hooks and `react-router-dom` (configured with `HashRouter` fallbacks) for seamless, client-side Single Page Application (SPA) navigation.
-* **Data Visualization:** Aggregates timestamped Supabase data into calculated time buckets (2H, 4H, Daily) to render dynamic trajectory charts using **Recharts**.
-* **Asynchronous API Integration:** Robust handling of multiple AI API endpoints to evaluate code snippets, complete with error handling and loading states.
-* **CI/CD Pipeline:** Configured GitHub Actions workflows for automated dependency installation, strict ESLint validation, environment variable injection, and continuous deployment to GitHub Pages.
-* **Responsive UI/UX Architecture:** Engineered a fluid, mobile-responsive layout utilizing Tailwind CSS, featuring a dynamic `backdrop-blur` floating "glass" navigation bar for optimal viewport utilization on smaller devices.
+| Layer | Tool / Framework |
+| :--- | :--- |
+| **Frontend** | React 18 + Vite |
+| **Styling** | Tailwind CSS |
+| **Charts** | Recharts |
+| **Database** | Supabase (Postgres) |
+| **Solver LLM** | Claude 3.5 Sonnet (Anthropic) |
+| **Judge LLM** | Qwen-3-32B (Separate provider) |
 
-## 🚧 Challenges Solved
+## Dashboard
 
-Building this platform required navigating complex technical hurdles with extreme dedication and focus:
-1. **CI/CD Build Failures:** Overcame pipeline blockers by meticulously debugging strict ESLint configurations and resolving unused variable dependency loops to achieve a 100% clean automated build process.
-2. **Static Hosting Routing:** Engineered a `404.html` fallback system within the GitHub Actions workflow to allow clean URLs on a static file server without breaking direct page reloads.
-3. **API Data Normalization:** Standardized varying JSON response structures from different AI model providers into a single, unified database schema in Supabase for consistent frontend rendering.
-4. **Mobile Dashboard Optimization:** Resolved complex viewport occlusion and Single Page Application (SPA) scroll-restoration quirks by implementing custom `useRef` routing hooks and conditional state-driven navigation overlays.
+All five components read live from Supabase evaluation records:
 
-## 🗺️ Architectural Roadmap
+* **Stats row:** Headline numbers across all sessions (total evaluations, models evaluated, challenges covered, overall average weighted score).
+* **Model leaderboard:** Ranked table of every evaluated model. Includes rank, name, average total score, per-dimension averages, and session count. Sortable by any column.
+* **Radar chart:** Visualizes a model's performance profile across the four scoring dimensions to easily identify weaknesses (e.g., correctness vs. explanation quality).
+* **Heatmap:** A challenge-by-model grid displaying the weighted score. Color-coded: green (80+), amber (60–79), red (<60), and grey (no data). Highlights which challenge categories a model struggles with most.
+* **Trend line:** Average score per model over time, binned by session date, to track if a model is improving or degrading over multiple runs.
 
-While Codelens is currently optimized as a standalone deployment for individual AI engineers, the architecture is inherently designed to scale into a multi-tenant environment. 
+## Scoring Rubric
 
-**Planned Implementation: Multi-Analyst Telemetry Sync**
-Currently, qualitative evaluation data (like analyst conclusions) is managed via local state. To prevent state collisions when multiple engineers operate the dashboard, the next architectural iteration involves:
+All four dimensions are scored by Qwen-3-32B on a 0–100 scale. The judge prompt includes the challenge spec, constraints, and full solver output, but excludes the model name and provider. 
 
-* **Supabase Authentication:** Securing the platform with authenticated sessions and role-based access control (RBAC).
-* **Relational State Management:** Migrating volatile local-storage conclusions to a dedicated `evaluation_reports` table within the PostgreSQL database.
-* **User-Scoped Data Isolation:** Utilizing Supabase Row Level Security (RLS) policies to bind specific `user_id` tokens to their respective evaluation logs. This ensures that when multiple engineers benchmark the same LLM against the same challenge, their qualitative conclusions and custom telemetry remain strictly isolated, secure, and globally synced across all devices.
+The weighted total is computed as follows:
+
+| Dimension | Weight | What the judge looks for |
+| :--- | :--- | :--- |
+| **Correctness** | 35% | Does the solution handle all inputs and edge cases? |
+| **Efficiency** | 25% | Is the time/space complexity optimal for this problem class? |
+| **Readability** | 20% | Is the code clean, well-named, and idiomatic? |
+| **Explanation** | 20% | Does the model explain approach, complexity, and trade-offs clearly? |
+
+## Challenge Library
+
+The app includes eight challenges across three categories. Each challenge has a difficulty label (easy/medium/hard), optimal time/space complexity, and tags.
+
+* **Algorithms:** Two Sum, Binary Search, Valid Parentheses, Deep Flatten Array
+* **Data Structures:** LRU Cache
+* **Frontend Patterns:** Implement Debounce, Implement Promise.all, Custom EventEmitter
+
+## Getting Started
+
+### Prerequisites
+
+* Node.js 20+
+* A Supabase project (the free tier is fine)
+* API keys for Claude (Anthropic) and Qwen-3-32B (via your provider of choice)
+
+###Why this project
+
+A DataAnnotation job posting for frontend engineers described the work as: send coding challenges to AI models, evaluate the outputs, $40–75/hr. The problem is you're building someone else's training dataset with no artifact to show for it.
+
+This is the version where the evaluation infrastructure is yours, the data is yours, and the findings are publishable. The scoring methodology, the LLM-as-judge approach, and the arena comparison model are all things I'd want to talk through in an interview, not just list on a resume.
+
 
 ## 🚀 Quick Start Guide
 
