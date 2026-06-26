@@ -53,19 +53,7 @@ The weighted total is computed as follows:
 
 ## Challenge Library
 
-The app includes eight challenges across three categories. Each challenge has a difficulty label (easy/medium/hard), optimal time/space complexity, and tags.
-
-* **Algorithms:** Two Sum, Binary Search, Valid Parentheses, Deep Flatten Array
-* **Data Structures:** LRU Cache
-* **Frontend Patterns:** Implement Debounce, Implement Promise.all, Custom EventEmitter
-
-## Getting Started
-
-### Prerequisites
-
-* Node.js 20+
-* A Supabase project (the free tier is fine)
-* API keys for Claude (Anthropic) and Qwen-3-32B (via your provider of choice)
+The app includes 50+ challenges across 6 categories. Each challenge has a difficulty label (easy/medium/hard/expert), optimal time/space complexity, and tags.
 
 ###Why this project
 
@@ -75,7 +63,6 @@ This is the version where the evaluation infrastructure is yours, the data is yo
 
 
 ## 🚀 Quick Start Guide
-
 ### Prerequisites
 * [Node.js](https://nodejs.org/) (v18+)
 * `npm`
