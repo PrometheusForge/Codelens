@@ -25,7 +25,6 @@ Built as a response to the AI annotation job market — instead of rating model 
 | **Styling** | Tailwind CSS |
 | **Charts** | Recharts |
 | **Database** | Supabase (Postgres) |
-| **Solver LLM** | Claude 3.5 Sonnet (Anthropic) |
 | **Judge LLM** | Qwen-3-32B (Separate provider) |
 
 ## Dashboard
@@ -55,8 +54,7 @@ The weighted total is computed as follows:
 
 The app includes 50+ challenges across 6 categories. Each challenge has a difficulty label (easy/medium/hard/expert), optimal time/space complexity, and tags.
 
-###Why this project
-
+### Why this project
 A DataAnnotation job posting for frontend engineers described the work as: send coding challenges to AI models, evaluate the outputs, $40–75/hr. The problem is you're building someone else's training dataset with no artifact to show for it.
 
 This is the version where the evaluation infrastructure is yours, the data is yours, and the findings are publishable. The scoring methodology, the LLM-as-judge approach, and the arena comparison model are all things I'd want to talk through in an interview, not just list on a resume.
